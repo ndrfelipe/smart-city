@@ -1,0 +1,1 @@
+export type DemandStatus = 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
