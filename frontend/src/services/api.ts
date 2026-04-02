@@ -1,4 +1,6 @@
+
 //Estrutura da interface
+
 export interface Demanda {
   id: string;
   titulo: string;
@@ -9,8 +11,10 @@ export interface Demanda {
   data: string;
 }
 
-// Dados mockados 
-export const demandasMock: Demanda[] = [
+// Omitimos id, status e data, pois a API quem vai gerar isso ao criar
+export type CriarDemandaDTO = Omit<Demanda, 'id' | 'status' | 'data'>;
+
+let demandasMock: Demanda[] = [
   {
     id: 'CIV-2938',
     titulo: 'Poste apagado',
@@ -40,13 +44,43 @@ export const demandasMock: Demanda[] = [
   }
 ];
 
-// Simulação de uma requisição da API
+// SUA FAKE API COMPLETA
 export const api = {
+  // 1. Buscar todas
   getDemandas: async (): Promise<Demanda[]> => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve(demandasMock);
+        resolve([...demandasMock]); // Retorna uma cópia do array
       }, 1000); 
     });
   },
+
+  // 2. Criar uma nova
+  addDemanda: async (dados: CriarDemandaDTO): Promise<Demanda> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const novaDemanda: Demanda = {
+          ...dados,
+          id: `CIV-${Math.floor(Math.random() * 10000)}`,
+          status: 'Pendente',
+          data: new Date().toISOString().split('T')[0], // Pega a data de hoje no formato YYYY-MM-DD
+        };
+        demandasMock = [novaDemanda, ...demandasMock]; // Salva no Mock
+        resolve(novaDemanda);
+      }, 1000);
+    });
+  },
+
+  // 3. Atualizar status
+  updateStatus: async (id: string, novoStatus: Demanda['status']): Promise<Demanda> => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const index = demandasMock.findIndex(d => d.id === id);
+        if (index === -1) return reject(new Error('Demanda não encontrada'));
+
+        demandasMock[index] = { ...demandasMock[index], status: novoStatus };
+        resolve(demandasMock[index]);
+      }, 800); 
+    });
+  }
 };
