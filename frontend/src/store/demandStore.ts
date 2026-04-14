@@ -51,8 +51,8 @@ export const useDemandStore = create<DemandState>((set, get) => ({
         isLoading: false
       }));
     } catch (err) {
-      console.error("Falha ao buscar demandas:", err);
-      set({ error: 'Erro ao carregar demandas', isLoading: false });
+      console.error("Falha ao adicionar demanda:", err);
+      set({ error: 'Erro ao adicionar demanda', isLoading: false });
     }
   },
 
