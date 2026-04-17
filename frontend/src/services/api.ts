@@ -7,7 +7,7 @@ export interface Demanda {
   descricao: string;
   categoria: string;
   local: string;
-  status: 'Pendente' | 'Em andamento' | 'Resolvido';
+  status: 'Em análise' | 'Em andamento' | 'Resolvido';
   data: string;
 }
 
@@ -21,7 +21,7 @@ let demandasMock: Demanda[] = [
     descricao: 'Poste apagado há 3 dias na Rua das Flores.',
     categoria: 'Iluminação',
     local: 'Rua das Flores, Centro',
-    status: 'Pendente',
+    status: 'Em análise',
     data: '2026-03-25',
   },
   {
@@ -62,7 +62,7 @@ export const api = {
         const novaDemanda: Demanda = {
           ...dados,
           id: `CIV-${Math.floor(Math.random() * 10000)}`,
-          status: 'Pendente',
+          status: 'Em análise',
           data: new Date().toISOString().split('T')[0], // Pega a data de hoje no formato YYYY-MM-DD
         };
         demandasMock = [novaDemanda, ...demandasMock]; // Salva no Mock
