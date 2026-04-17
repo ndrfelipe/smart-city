@@ -7,6 +7,4 @@
 html,
 body {
   font-family: Inter, system-ui, sans-serif;
-  height: 100%;
-  overflow-y: auto;
 }
