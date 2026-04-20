@@ -288,7 +288,7 @@ export default function DashboardPage() {
         {/* TITULO MAIS PRA ESQUERDA */}
         <VStack align="start" gap={2} mb={10} pl={1}>
           <Heading size="2xl" fontWeight="extrabold" color="gray.800">
-            Painel de Operações
+            Dashboard
           </Heading>
 
           <Text color="gray.500" fontSize="md" fontWeight="medium">
