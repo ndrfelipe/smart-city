@@ -244,7 +244,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <Box minH="100vh" bg="#F8F9FB" overflow="auto">
+    <Box minH="100vh" bg="#F8F9FB" overflow="auto" padding="1rem">
       {/* HEADER */}
       <Box className="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-gray-100 px-6 md:px-10 py-4">
         <Flex justify="center" align="center" gap={6}>

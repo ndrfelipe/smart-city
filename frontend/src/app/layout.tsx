@@ -9,17 +9,27 @@ export const metadata: Metadata = {
   description: "Plataforma Smart City",
 };
 
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body>
         <Provider>
+          {/* Container Pai: Ocupa a tela inteira sem scroll externo */}
           <div className="flex h-screen w-full flex-col overflow-hidden">
             <Header />
-            <div className="flex h-full flex-1">
+            
+            {/* Wrapper do Corpo: 
+                No mobile: empilha (col)
+                No desktop: lado a lado (row)
+            */}
+            <div className="flex flex-1 flex-col md:flex-row min-h-0 overflow-hidden">
               <Sidebar />
-              <main className="flex-1 overflow-y-auto bg-gray-100 p-6">
+              
+              {/* O main: 
+                  flex-1: pega todo o espaço
+                  min-w-0: evita que ele 'suma' no desktop (bug comum de flex)
+              */}
+              <main className="flex-1 min-w-0 overflow-y-auto bg-gray-100 p-6">
                 {children}
               </main>
             </div>
