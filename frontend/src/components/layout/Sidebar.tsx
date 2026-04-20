@@ -16,6 +16,11 @@ export function Sidebar() {
             Nova Demanda
           </Button>
         </Link>
+        <Link href="/painel-administrativo" passHref>
+          <Button w="full" variant="ghost" justifyContent="flex-start">
+            Painel Administrativo
+          </Button>
+        </Link>
         {/* Este link seria visível apenas para o Gestor no futuro */}
         <Link href="/dashboard" passHref>
           <Button w="full" variant="ghost" justifyContent="flex-start">
