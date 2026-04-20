@@ -1,6 +1,8 @@
 
 //Estrutura da interface
 
+import { User } from '@/types/User';
+
 export interface Demanda {
   id: string;
   titulo: string;
@@ -44,8 +46,43 @@ let demandasMock: Demanda[] = [
   }
 ];
 
+const usersMock: (User & { password: string })[] = [
+  {
+    id: '1',
+    name: 'João Cidadão',
+    email: 'joao@email.com',
+    role: 'CITIZEN',
+    createdAt: '2026-01-01',
+    password: '123456'
+  },
+  {
+    id: '2',
+    name: 'Maria Gestora',
+    email: 'maria@email.com',
+    role: 'MANAGER',
+    createdAt: '2026-01-01',
+    password: '123456'
+  }
+];
+
 // SUA FAKE API COMPLETA
 export const api = {
+  // Login
+  login: async (email: string, password: string): Promise<User | null> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const user = usersMock.find(u => u.email === email && u.password === password);
+        if (user) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { password: _, ...userWithoutPassword } = user;
+          resolve(userWithoutPassword);
+        } else {
+          resolve(null);
+        }
+      }, 500);
+    });
+  },
+
   // 1. Buscar todas
   getDemandas: async (): Promise<Demanda[]> => {
     return new Promise((resolve) => {
