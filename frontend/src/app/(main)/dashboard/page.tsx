@@ -17,7 +17,8 @@ import {
   VStack,
 } from "@chakra-ui/react";
 
-import { api, Demanda } from "@/services/api";
+import { api } from "@/services/api";
+import { Demand, DemandStatus } from "@/types";
 import { AppCard } from "@/components/ui/AppCard";
 
 // --- SUB-COMPONENTES DE UI ---
@@ -61,9 +62,36 @@ const StatCard = ({ title, value, label, icon: Icon, badge, color }: any) => (
 
 // --- HELPERS ---
 
-const getStatusColor = (status: Demanda["status"]) => {
-  const map = { Pendente: "orange", "Em andamento": "blue", Resolvido: "green" };
+const getStatusColor = (status: DemandStatus) => {
+  const map: Record<string, string> = { 
+    PENDING: "orange", 
+    IN_PROGRESS: "blue", 
+    RESOLVED: "green",
+    REJECTED: "red"
+  };
   return map[status] || "gray";
+};
+
+const getStatusLabel = (status: DemandStatus) => {
+  const map: Record<string, string> = {
+    PENDING: "Pendente",
+    IN_PROGRESS: "Em andamento",
+    RESOLVED: "Resolvido",
+    REJECTED: "Rejeitado"
+  };
+  return map[status] || status;
+};
+
+const getCategoryLabel = (category: string) => {
+  const map: Record<string, string> = {
+    ROAD_MAINTENANCE: "Manutenção de Rua",
+    PUBLIC_LIGHTING: "Iluminação Pública",
+    GARBAGE_COLLECTION: "Coleta de Lixo",
+    SANITATION: "Saneamento",
+    INSPECTION: "Fiscalização",
+    OTHER: "Outros",
+  };
+  return map[category] || category;
 };
 
 // --- ICONS ---
@@ -141,7 +169,7 @@ const IconCheck = () => (
 // --- COMPONENTE PRINCIPAL ---
 
 export default function DashboardPage() {
-  const [demandas, setDemandas] = useState<Demanda[]>([]);
+  const [demandas, setDemandas] = useState<Demand[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
@@ -164,9 +192,9 @@ export default function DashboardPage() {
   // Estatísticas
   const stats = useMemo(() => {
     const total = demandas.length;
-    const pendentes = demandas.filter((d) => d.status === "Pendente").length;
-    const andamento = demandas.filter((d) => d.status === "Em andamento").length;
-    const resolvidas = demandas.filter((d) => d.status === "Resolvido").length;
+    const pendentes = demandas.filter((d) => d.status === "PENDING").length;
+    const andamento = demandas.filter((d) => d.status === "IN_PROGRESS").length;
+    const resolvidas = demandas.filter((d) => d.status === "RESOLVED").length;
 
     return {
       total,
@@ -182,7 +210,7 @@ export default function DashboardPage() {
     const count: Record<string, number> = {};
 
     demandas.forEach((d) => {
-      count[d.categoria] = (count[d.categoria] || 0) + 1;
+      count[d.category] = (count[d.category] || 0) + 1;
     });
 
     return Object.entries(count)
@@ -215,7 +243,7 @@ export default function DashboardPage() {
     const mapa: Record<number, number> = {};
 
     demandas.forEach((d) => {
-      const date = new Date(d.data);
+      const date = new Date(d.createdAt);
       const mesIndex = date.getMonth();
       mapa[mesIndex] = (mapa[mesIndex] || 0) + 1;
     });
@@ -238,15 +266,15 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <Flex h="80vh" align="center" justify="center">
-        <Spinner size="xl" color="blue.500" thickness="4px" />
+        <Spinner size="xl" color="blue.500" />
       </Flex>
     );
   }
 
   return (
-    <Box minH="100vh" bg="#F8F9FB" overflow="auto">
-      {/* HEADER */}
-      <Box className="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-gray-100 px-6 md:px-10 py-4">
+    <Box>
+      {/* HEADER LOCAL INTERNO (OPCIONAL) */}
+      <Box className="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-gray-100 px-8 md:px-20 py-4">
         <Flex justify="center" align="center" gap={6}>
           <Box flex="1" maxW="780px" mx="auto">
             <Box position="relative">
@@ -281,7 +309,7 @@ export default function DashboardPage() {
       </Box>
 
       {/* CONTEÚDO */}
-      <Box className="px-6 md:px-10 py-8">
+      <Box className="px-8 md:px-20 py-8">
         {/* ESPAÇO ENTRE PESQUISA E TITULO */}
         <Box mt={10} />
 
@@ -390,7 +418,7 @@ export default function DashboardPage() {
                   <Box key={cat.name}>
                     <Flex justify="space-between" mb={2}>
                       <Text fontSize="sm" fontWeight="bold" color="gray.700">
-                        {cat.name}
+                        {getCategoryLabel(cat.name)}
                       </Text>
 
                       <Text fontSize="sm" color="blue.600" fontWeight="bold">
@@ -452,11 +480,11 @@ export default function DashboardPage() {
 
                     <Box>
                       <Text fontWeight="bold" color="gray.800">
-                        {d.titulo}
+                        {d.title}
                       </Text>
 
                       <Text fontSize="xs" color="gray.500">
-                        {d.local} • {d.categoria}
+                        {d.location} • {getCategoryLabel(d.category)}
                       </Text>
                     </Box>
                   </HStack>
@@ -468,7 +496,7 @@ export default function DashboardPage() {
                     py={1}
                     borderRadius="lg"
                   >
-                    {d.status}
+                    {getStatusLabel(d.status)}
                   </Badge>
                 </Flex>
               ))}

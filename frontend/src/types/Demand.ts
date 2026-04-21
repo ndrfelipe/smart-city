@@ -8,10 +8,11 @@ export interface Demand {
   category: DemandCategory;
   location: string;
   status: DemandStatus;
+  imageUrl?: string;
   userId: string;
   createdAt: string;
   updatedAt: string;
 }
 
 // DTO (Data Transfer Object) para criação
-export type CreateDemandDTO = Omit<Demand, 'id' | 'status' | 'createdAt' | 'updatedAt'>;
+export type CreateDemandDTO = Omit<Demand, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'userId'>;

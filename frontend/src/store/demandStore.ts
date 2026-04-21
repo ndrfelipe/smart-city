@@ -1,17 +1,18 @@
 // store/demandStore.ts
 
 import { create } from 'zustand';
-import { Demanda, CriarDemandaDTO, api } from '../services/api'; // Ajuste o caminho do import
+import { api } from '../services/api';
+import { Demand, CreateDemandDTO, DemandStatus } from '@/types';
 
 interface DemandState {
-  demandas: Demanda[];
+  demandas: Demand[];
   isLoading: boolean;
   error: string | null;
 
   // Actions
   fetchDemandas: () => Promise<void>;
-  addDemanda: (data: CriarDemandaDTO) => Promise<void>;
-  updateStatusDemanda: (id: string, newStatus: Demanda['status']) => Promise<void>;
+  addDemanda: (data: CreateDemandDTO) => Promise<void>;
+  updateStatusDemanda: (id: string, newStatus: DemandStatus) => Promise<void>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -51,8 +52,8 @@ export const useDemandStore = create<DemandState>((set, get) => ({
         isLoading: false
       }));
     } catch (err) {
-      console.error("Falha ao buscar demandas:", err);
-      set({ error: 'Erro ao carregar demandas', isLoading: false });
+      console.error("Falha ao criar demanda:", err);
+      set({ error: 'Erro ao criar demanda', isLoading: false });
     }
   },
 
