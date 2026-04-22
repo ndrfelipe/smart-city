@@ -53,7 +53,7 @@ export default function Login() {
         boxShadow="lg"
         bg="white"
       >
-        <VStack spacing={4} align="flex-start" w="full">
+        <VStack gap={4} align="flex-start" w="full">
           <Heading as="h1" size="lg" textAlign="center" w="full">
             Login - Smart City
           </Heading>
@@ -61,7 +61,7 @@ export default function Login() {
             Entre com suas credenciais
           </Text>
           <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-            <VStack spacing={4} w="full">
+            <VStack gap={4} w="full">
               <Box w="full">
                 <Text as="label" fontWeight="semibold" mb={2} display="block">
                   Email
@@ -85,16 +85,16 @@ export default function Login() {
                 />
               </Box>
               {error && (
-                <Alert status="error">
+                <Alert.Root status="error">
                   <MdError />
                   <Text ml={2}>{error}</Text>
-                </Alert>
+                </Alert.Root>
               )}
               <Button
                 type="submit"
-                colorScheme="blue"
+                colorPalette="blue"
                 width="full"
-                isLoading={isLoading}
+                loading={isLoading}
                 loadingText="Entrando..."
               >
                 Entrar

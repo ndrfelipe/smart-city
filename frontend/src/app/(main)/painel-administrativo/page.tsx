@@ -12,24 +12,42 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { api, Demanda } from '@/services/api';
+import { api } from '@/services/api';
+import { Demand, DemandStatus } from '@/types';
 
-const STATUS_OPTIONS: Demanda['status'][] = ['Em análise', 'Em andamento', 'Resolvido'];
+const STATUS_OPTIONS: DemandStatus[] = ['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'];
 
-const STATUS_COLOR: Record<Demanda['status'], string> = {
-  'Em análise': 'yellow',
-  'Em andamento': 'blue',
-  Resolvido: 'green',
+const STATUS_COLOR: Record<DemandStatus, string> = {
+  PENDING: 'yellow',
+  IN_PROGRESS: 'blue',
+  RESOLVED: 'green',
+  REJECTED: 'red',
+};
+
+const STATUS_LABEL: Record<DemandStatus, string> = {
+  PENDING: 'Pendente',
+  IN_PROGRESS: 'Em andamento',
+  RESOLVED: 'Resolvido',
+  REJECTED: 'Rejeitado',
+};
+
+const CATEGORY_LABEL: Record<string, string> = {
+  ROAD_MAINTENANCE: 'Manutenção de Vias',
+  PUBLIC_LIGHTING: 'Iluminação Pública',
+  GARBAGE_COLLECTION: 'Coleta de Lixo',
+  SANITATION: 'Saneamento',
+  INSPECTION: 'Fiscalização',
+  OTHER: 'Outros',
 };
 
 export default function PainelAdministrativoPage() {
-  const [demandas, setDemandas] = useState<Demanda[]>([]);
+  const [demandas, setDemandas] = useState<Demand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'Tudo' | Demanda['status']>('Tudo');
+  const [statusFilter, setStatusFilter] = useState<'Tudo' | DemandStatus>('Tudo');
   const [categoryFilter, setCategoryFilter] = useState('Tudo');
-  const [pendingStatusById, setPendingStatusById] = useState<Record<string, Demanda['status']>>({});
+  const [pendingStatusById, setPendingStatusById] = useState<Record<string, DemandStatus>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,7 +69,7 @@ export default function PainelAdministrativoPage() {
     }
   }
 
-  async function handleUpdateStatus(demanda: Demanda) {
+  async function handleUpdateStatus(demanda: Demand) {
     const nextStatus = pendingStatusById[demanda.id] ?? demanda.status;
     if (nextStatus === demanda.status) {
       return;
@@ -70,7 +88,7 @@ export default function PainelAdministrativoPage() {
   }
 
   const categories = useMemo(
-    () => Array.from(new Set(demandas.map((demanda) => demanda.categoria))).sort(),
+    () => Array.from(new Set(demandas.map((demanda) => demanda.category))).sort(),
     [demandas]
   );
 
@@ -78,23 +96,28 @@ export default function PainelAdministrativoPage() {
     const termo = search.trim().toLowerCase();
 
     return demandas.filter((demanda) => {
+      const categoryLabel = CATEGORY_LABEL[demanda.category] || demanda.category;
+      const statusLabel = STATUS_LABEL[demanda.status] || demanda.status;
+
       const matchesSearch =
         !termo ||
         [
           demanda.id,
-          demanda.titulo,
-          demanda.descricao,
-          demanda.categoria,
-          demanda.local,
+          demanda.title,
+          demanda.description,
+          demanda.category,
+          categoryLabel,
+          demanda.location,
           demanda.status,
-          demanda.data,
+          statusLabel,
+          demanda.createdAt,
         ]
           .join(' ')
           .toLowerCase()
           .includes(termo);
 
       const matchesStatus = statusFilter === 'Tudo' || demanda.status === statusFilter;
-      const matchesCategory = categoryFilter === 'Tudo' || demanda.categoria === categoryFilter;
+      const matchesCategory = categoryFilter === 'Tudo' || demanda.category === categoryFilter;
 
       return matchesSearch && matchesStatus && matchesCategory;
     });
@@ -103,15 +126,15 @@ export default function PainelAdministrativoPage() {
   const totals = useMemo(
     () => ({
       total: demandas.length,
-      emAnalise: demandas.filter((demanda) => demanda.status === 'Em análise').length,
-      emAndamento: demandas.filter((demanda) => demanda.status === 'Em andamento').length,
-      resolvidas: demandas.filter((demanda) => demanda.status === 'Resolvido').length,
+      pendentes: demandas.filter((demanda) => demanda.status === 'PENDING').length,
+      emAndamento: demandas.filter((demanda) => demanda.status === 'IN_PROGRESS').length,
+      resolvidas: demandas.filter((demanda) => demanda.status === 'RESOLVED').length,
     }),
     [demandas]
   );
 
   return (
-    <Box py={8} px={[4, 6, 8]} maxW="1200px" mx="auto">
+    <Box py={8} px={[4, 10, 20]} maxW="1600px" mx="auto">
       <Box mb={6}>
         <Heading size="lg" color="blue.600">
           Painel Administrativo
@@ -121,7 +144,7 @@ export default function PainelAdministrativoPage() {
         </Text>
       </Box>
 
-      <Stack direction={['column', 'row']} spacing={4} mb={6}>
+      <Stack direction={['column', 'row']} gap={4} mb={6}>
         <Box flex={1} bg="white" borderRadius="lg" p={4} shadow="sm" borderWidth="1px" borderColor="gray.200">
           <Text fontSize="sm" color="gray.500" mb={2}>
             Total de demandas
@@ -132,10 +155,10 @@ export default function PainelAdministrativoPage() {
         </Box>
         <Box flex={1} bg="white" borderRadius="lg" p={4} shadow="sm" borderWidth="1px" borderColor="gray.200">
           <Text fontSize="sm" color="gray.500" mb={2}>
-            Em análise
+            Pendentes
           </Text>
           <Heading size="md" color="yellow.600">
-            {totals.emAnalise}
+            {totals.pendentes}
           </Heading>
         </Box>
         <Box flex={1} bg="white" borderRadius="lg" p={4} shadow="sm" borderWidth="1px" borderColor="gray.200">
@@ -168,7 +191,7 @@ export default function PainelAdministrativoPage() {
 
         <select
           value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value as 'Tudo' | Demanda['status'])}
+          onChange={(event) => setStatusFilter(event.target.value as 'Tudo' | DemandStatus)}
           style={{
             maxWidth: '220px',
             padding: '8px 12px',
@@ -180,9 +203,9 @@ export default function PainelAdministrativoPage() {
           }}
         >
           <option value="Tudo">Todos os status</option>
-          <option value="Em análise">Em análise</option>
-          <option value="Em andamento">Em andamento</option>
-          <option value="Resolvido">Resolvido</option>
+          {STATUS_OPTIONS.map(status => (
+            <option key={status} value={status}>{STATUS_LABEL[status]}</option>
+          ))}
         </select>
 
         <select
@@ -201,13 +224,13 @@ export default function PainelAdministrativoPage() {
           <option value="Tudo">Todas as categorias</option>
           {categories.map((categoria) => (
             <option key={categoria} value={categoria}>
-              {categoria}
+              {CATEGORY_LABEL[categoria] || categoria}
             </option>
           ))}
         </select>
 
         <Button
-          colorScheme="gray"
+          colorPalette="gray"
           variant="outline"
           onClick={() => {
             setSearch('');
@@ -237,7 +260,7 @@ export default function PainelAdministrativoPage() {
                   {filteredDemandas.length} de {demandas.length}
                 </Heading>
               </Box>
-              <Button size="sm" colorScheme="blue" onClick={fetchDemandas}>
+              <Button size="sm" colorPalette="blue" onClick={fetchDemandas}>
                 Atualizar lista
               </Button>
             </Flex>
@@ -270,24 +293,24 @@ export default function PainelAdministrativoPage() {
                           <td style={{ padding: '16px', borderBottom: '1px solid #F3F4F6', color: '#374151', fontWeight: 600 }}>{demanda.id}</td>
                           <td style={{ padding: '16px', borderBottom: '1px solid #F3F4F6' }}>
                             <Text fontWeight="bold" color="gray.800">
-                              {demanda.titulo}
+                              {demanda.title}
                             </Text>
                             <Text fontSize="sm" color="gray.500">
-                              {demanda.descricao}
+                              {demanda.description}
                             </Text>
                           </td>
                           <td style={{ padding: '16px', borderBottom: '1px solid #F3F4F6' }}>
-                            <Badge colorScheme="purple" variant="subtle">
-                              {demanda.categoria}
+                            <Badge colorPalette="purple" variant="subtle">
+                              {CATEGORY_LABEL[demanda.category] || demanda.category}
                             </Badge>
                           </td>
-                          <td style={{ padding: '16px', borderBottom: '1px solid #F3F4F6' }}>{demanda.local}</td>
+                          <td style={{ padding: '16px', borderBottom: '1px solid #F3F4F6' }}>{demanda.location}</td>
                           <td style={{ padding: '16px', borderBottom: '1px solid #F3F4F6' }}>
-                            <Badge colorScheme={STATUS_COLOR[demanda.status]} variant="subtle">
-                              {demanda.status}
+                            <Badge colorPalette={STATUS_COLOR[demanda.status]} variant="subtle">
+                              {STATUS_LABEL[demanda.status]}
                             </Badge>
                           </td>
-                          <td style={{ padding: '16px', borderBottom: '1px solid #F3F4F6' }}>{new Date(demanda.data).toLocaleDateString('pt-BR')}</td>
+                          <td style={{ padding: '16px', borderBottom: '1px solid #F3F4F6' }}>{new Date(demanda.createdAt).toLocaleDateString('pt-BR')}</td>
                           <td style={{ padding: '16px', borderBottom: '1px solid #F3F4F6' }}>
                             <Flex direction="column" gap={2}>
                               <select
@@ -295,7 +318,7 @@ export default function PainelAdministrativoPage() {
                                 onChange={(event) =>
                                   setPendingStatusById((prev) => ({
                                     ...prev,
-                                    [demanda.id]: event.target.value as Demanda['status'],
+                                    [demanda.id]: event.target.value as DemandStatus,
                                   }))
                                 }
                                 disabled={isUpdating}
@@ -309,15 +332,15 @@ export default function PainelAdministrativoPage() {
                               >
                                 {STATUS_OPTIONS.map((status) => (
                                   <option key={status} value={status}>
-                                    {status}
+                                    {STATUS_LABEL[status]}
                                   </option>
                                 ))}
                               </select>
                               <Button
                                 size="sm"
-                                colorScheme="blue"
+                                colorPalette="blue"
                                 onClick={() => handleUpdateStatus(demanda)}
-                                isLoading={isUpdating}
+                                loading={isUpdating}
                                 loadingText="Atualizando"
                                 disabled={selectedStatus === demanda.status}
                               >

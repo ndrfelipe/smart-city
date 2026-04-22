@@ -9,8 +9,8 @@ export function Sidebar() {
   const pathname = usePathname();
   const linkIsActive = (path: string) => pathname === path;
   const linkActiveStyle: ButtonProps = {
-    bg: 'blue.600',
-    color: 'white',
+    colorPalette: 'blue',
+    variant: 'solid',
     _hover: {
       bg: 'blue.700',
     },

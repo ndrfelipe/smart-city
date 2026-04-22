@@ -13,30 +13,47 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useDemandStore } from '@/store/demandStore';
-import { Demanda } from '@/services/api';
+import { Demand, DemandStatus, DemandCategory } from '@/types';
 
-const STATUS_OPTIONS: Demanda['status'][] = ['Em análise', 'Em andamento', 'Resolvido'];
+const STATUS_OPTIONS: DemandStatus[] = ['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'];
 
-const STATUS_COLOR: Record<Demanda['status'], string> = {
-  'Em análise': 'yellow',
-  'Em andamento': 'blue',
-  Resolvido: 'green',
+const STATUS_COLOR: Record<DemandStatus, string> = {
+  PENDING: 'yellow',
+  IN_PROGRESS: 'blue',
+  RESOLVED: 'green',
+  REJECTED: 'red',
+};
+
+const STATUS_LABELS: Record<DemandStatus, string> = {
+  PENDING: 'Pendente',
+  IN_PROGRESS: 'Em andamento',
+  RESOLVED: 'Resolvido',
+  REJECTED: 'Rejeitado',
+};
+
+const CATEGORY_LABELS: Record<DemandCategory, string> = {
+  ROAD_MAINTENANCE: 'Manutenção de Rua',
+  PUBLIC_LIGHTING: 'Iluminação Pública',
+  GARBAGE_COLLECTION: 'Coleta de Lixo',
+  SANITATION: 'Saneamento',
+  INSPECTION: 'Fiscalização',
+  OTHER: 'Outros',
 };
 
 export default function Demandas() {
   const { demandas, isLoading, error, fetchDemandas, updateStatusDemanda } = useDemandStore();
-  const [pendingStatusById, setPendingStatusById] = useState<Record<string, Demanda['status']>>({});
+  const [pendingStatusById, setPendingStatusById] = useState<Record<string, DemandStatus>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDemandas();
   }, [fetchDemandas]);
 
-  function handleSelectStatus(id: string, status: Demanda['status']) {
+  function handleSelectStatus(id: string, status: DemandStatus) {
     setPendingStatusById((prev) => ({ ...prev, [id]: status }));
   }
 
-  async function handleUpdateStatus(demanda: Demanda) {
+  async function handleUpdateStatus(demanda: Demand) {
     const nextStatus = pendingStatusById[demanda.id] ?? demanda.status;
     if (nextStatus === demanda.status) return;
 
@@ -68,30 +85,29 @@ export default function Demandas() {
                   <Flex justify="space-between" align="flex-start" gap={4} wrap="wrap">
                     <Box>
                       <Text fontWeight="bold" fontSize="lg" color="gray.800">
-                        {demanda.titulo}
+                        {demanda.title}
                       </Text>
                       <Text color="gray.600" fontSize="sm" mt={1}>
-                        {demanda.descricao}
+                        {demanda.description}
                       </Text>
                       <Text color="gray.500" fontSize="sm" mt={2}>
-                        {demanda.local} • {demanda.categoria}
+                        {demanda.location} • {CATEGORY_LABELS[demanda.category]}
                       </Text>
                     </Box>
 
                     <Stack gap={2} minW="230px">
                       <Badge colorPalette={STATUS_COLOR[demanda.status]} alignSelf="flex-start">
-                        {demanda.status}
+                        {STATUS_LABELS[demanda.status]}
                       </Badge>
 
-                      <NativeSelect.Root size="sm">
+                      <NativeSelect.Root size="sm" disabled={isUpdatingCurrent}>
                         <NativeSelect.Field
                           value={selectedStatus}
-                          onChange={(e) => handleSelectStatus(demanda.id, e.target.value as Demanda['status'])}
-                          disabled={isUpdatingCurrent}
+                          onChange={(e) => handleSelectStatus(demanda.id, e.target.value as DemandStatus)}
                         >
                           {STATUS_OPTIONS.map((status) => (
                             <option key={status} value={status}>
-                              {status}
+                              {STATUS_LABELS[status]}
                             </option>
                           ))}
                         </NativeSelect.Field>
