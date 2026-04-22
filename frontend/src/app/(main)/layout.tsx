@@ -7,7 +7,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <Header />
       <div className="flex h-full flex-1">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-gray-100 p-6">
+        {/* pb-16 garante espaço para a bottom bar no mobile */}
+        <main className="flex-1 overflow-y-auto bg-gray-100 p-6 pb-20 md:pb-6">
           {children}
         </main>
       </div>
