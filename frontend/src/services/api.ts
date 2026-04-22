@@ -58,6 +58,7 @@ const usersMock: (User & { password: string })[] = [
 ];
 
 export const api = {
+
   // Login
   login: async (email: string, password: string): Promise<User | null> => {
     return new Promise((resolve) => {
@@ -70,6 +71,32 @@ export const api = {
         } else {
           resolve(null);
         }
+      }, 500);
+    });
+  },
+
+  // Registro
+  register: async (name: string, email: string, password: string): Promise<User | null> => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const emailJaExiste = usersMock.find(u => u.email === email);
+        if (emailJaExiste) {
+          return reject(new Error('E-mail já cadastrado'));
+        }
+
+        const novoUsuario: User & { password: string } = {
+          id: String(usersMock.length + 1),
+          name,
+          email,
+          role: 'CITIZEN',
+          createdAt: new Date().toISOString(),
+          password,
+        };
+
+        usersMock.push(novoUsuario);
+
+        const { password: _, ...userWithoutPassword } = novoUsuario;
+        resolve(userWithoutPassword);
       }, 500);
     });
   },

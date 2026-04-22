@@ -272,7 +272,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <Box>
+    <Box py={5} px={6}>
       {/* HEADER LOCAL INTERNO (OPCIONAL) */}
       <Box className="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-gray-100 px-8 md:px-20 py-4">
         <Flex justify="center" align="center" gap={6}>
@@ -302,6 +302,7 @@ export default function DashboardPage() {
                   borderColor: "blue.500",
                   boxShadow: "0 0 0 1px #3b82f6",
                 }}
+                mb={5}
               />
             </Box>
           </Box>

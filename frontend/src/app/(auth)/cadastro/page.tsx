@@ -12,7 +12,49 @@ import {
 } from '@chakra-ui/react';
 import Link from 'next/link';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { api } from '@/services/api';
+
 export default function Cadastro() {
+
+  const router = useRouter();
+
+  const [nome, setNome] = useState('');
+  const [sobrenome, setSobrenome] = useState('');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [erro, setErro] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleCadastro() {
+    setErro('');
+    if (!nome || !sobrenome || !email || !senha || !confirmarSenha) {
+      setErro('Preencha todos os campos.');
+      return;
+    }
+
+    if (senha !== confirmarSenha) {
+      setErro('As senhas não coincidem.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await api.register(`${nome} ${sobrenome}`, email, senha);
+      router.push('/login');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErro(err.message);
+      } else {
+        setErro('Erro ao cadastrar. Tente novamente.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <Flex minH="100vh" align="center" justify="center" bg="gray.100">
       <Flex
@@ -40,31 +82,66 @@ export default function Cadastro() {
             <Flex gap={4}>
               <Field.Root flex={1}>
                 <Field.Label>Nome</Field.Label>
-                <Input placeholder="João" />
+                <Input 
+                placeholder="João"
+                value={nome}
+                onChange={e => setNome(e.target.value)}
+                />
               </Field.Root>
               <Field.Root flex={1}>
                 <Field.Label>Sobrenome</Field.Label>
-                <Input placeholder="Silva" />
+                <Input 
+                placeholder="Silva" 
+                value={sobrenome}
+                onChange={e => setSobrenome(e.target.value)}
+                />
               </Field.Root>
             </Flex>
 
             <Field.Root>
               <Field.Label>E-mail</Field.Label>
-              <Input type="email" placeholder="joao@email.com" />
+              <Input 
+              type="email" 
+              placeholder="joao@email.com" 
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              />
             </Field.Root>
 
             <Flex gap={4}>
               <Field.Root flex={1}>
                 <Field.Label>Senha</Field.Label>
-                <Input type="password" placeholder="••••••••" />
+                <Input 
+                type="password" 
+                placeholder="••••••••" 
+                value={senha}
+                onChange={e => setSenha(e.target.value)}
+                />
               </Field.Root>
+
               <Field.Root flex={1}>
                 <Field.Label>Confirmar senha</Field.Label>
-                <Input type="password" placeholder="••••••••" />
+                <Input 
+                type="password" 
+                placeholder="••••••••" 
+                value={confirmarSenha}
+                onChange={e => setConfirmarSenha(e.target.value)}
+                />
               </Field.Root>
             </Flex>
 
-            <Button colorPalette="blue" w="full" mt={2}>
+            {/* Mensagem de erro */}
+            {erro && (
+              <Text color="red.500" fontSize="sm">{erro}</Text>
+            )}
+
+            <Button 
+            colorPalette="blue" 
+            w="full" 
+            mt={2}
+            onClick={handleCadastro}
+            loading={loading}
+            >
               Cadastrar
             </Button>
           </Stack>
@@ -92,7 +169,6 @@ export default function Cadastro() {
             </Button>
           </Link>
         </Flex>
-
       </Flex>
     </Flex>
   );
