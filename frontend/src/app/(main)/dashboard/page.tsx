@@ -18,7 +18,8 @@ import {
 } from "@chakra-ui/react";
 
 import { api } from "@/services/api";
-import { Demand, DemandStatus } from "@/types";
+import { Demand } from "@/types/Demand";
+import { DemandStatus } from "@/types/Status";
 import { AppCard } from "@/components/ui/AppCard";
 
 // --- SUB-COMPONENTES DE UI ---

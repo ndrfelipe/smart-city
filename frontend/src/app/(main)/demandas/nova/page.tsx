@@ -15,7 +15,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { useState, useRef } from 'react';
 import { useDemandStore } from '@/store/demandStore';
-import { CreateDemandDTO, DemandCategory } from '@/types';
+import { CreateDemandDTO } from '@/types/Demand';
+import { DemandCategory } from '@/types/Category';
 
 const CATEGORIAS: { value: DemandCategory; label: string }[] = [
   { value: 'PUBLIC_LIGHTING', label: 'Iluminação Pública' },

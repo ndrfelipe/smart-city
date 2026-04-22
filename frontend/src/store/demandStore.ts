@@ -2,7 +2,8 @@
 
 import { create } from 'zustand';
 import { api } from '../services/api';
-import { Demand, CreateDemandDTO, DemandStatus } from '@/types';
+import { Demand, CreateDemandDTO } from '@/types/Demand';
+import { DemandStatus } from '@/types/Status';
 
 interface DemandState {
   demandas: Demand[];

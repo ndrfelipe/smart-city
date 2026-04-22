@@ -1,5 +1,6 @@
-import { redirect } from 'next/navigation';
+import { permanentRedirect } from 'next/navigation';
 
 export default async function HomePage() {
-  redirect('/cadastro');
+  permanentRedirect('/cadastro');
 }
+
