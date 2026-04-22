@@ -1,6 +1,7 @@
 
 import { User } from '@/types/User';
-import { Demand, CreateDemandDTO, DemandStatus } from '@/types';
+import { Demand, CreateDemandDTO } from '@/types/Demand';
+import { DemandStatus } from '@/types/Status';
 
 let demandasMock: Demand[] = [
   {
