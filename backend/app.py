@@ -1,11 +1,15 @@
 from flask import Flask
 from flask_cors import CORS
 from utils.responses import standard_response
+from utils.error_handlers import ErrorHandler
 
 app = Flask(__name__)
 
 # Configura o CORS para permitir requisições de qualquer origem (pode ser restrito depois)
 CORS(app)
+
+# Inicializa o tratamento global de erros
+errors = ErrorHandler(app)
 
 @app.route('/')
 def index():
