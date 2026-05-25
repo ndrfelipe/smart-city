@@ -2,6 +2,10 @@ from flask import Flask
 from flask_cors import CORS
 from routes.main_routes import main_bp
 from middlewares.error_handler import ErrorHandler
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
