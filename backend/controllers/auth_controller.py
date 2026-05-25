@@ -21,11 +21,12 @@ class AuthController:
             data = cls.registration_schema.load(json_data)
             
             # Chamada ao Service para lógica de negócio (persistência)
+            # A role é opcional; se não enviada, o Service/Model assume 'cidadao'
             new_user = AuthService.register_user(
                 username=data['username'],
                 email=data['email'],
                 password=data['password'],
-                role=data.get('role', 'cidadao')
+                **({'role': data['role']} if 'role' in data else {})
             )
             
             # Formatação da resposta
