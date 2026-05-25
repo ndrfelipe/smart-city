@@ -7,11 +7,6 @@ class UserRegistrationSchema(Schema):
     password = fields.String(required=True, validate=validate.Length(min=6))
     role = fields.String(validate=validate.OneOf(['cidadao', 'gestor']), dump_default='cidadao')
 
-    @validates('username')
-    def validate_username(self, value, **kwargs):
-        if User.query.filter_by(username=value).first():
-            raise ValidationError('Nome de usuário já existe.')
-
     @validates('email')
     def validate_email(self, value, **kwargs):
         if User.query.filter_by(email=value).first():

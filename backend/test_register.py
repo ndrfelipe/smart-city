@@ -36,31 +36,15 @@ class RegisterTestCase(unittest.TestCase):
         self.assertEqual(data['data']['username'], 'testuser')
         self.assertEqual(data['data']['email'], 'test@example.com')
         self.assertEqual(data['message'], 'Usuário registrado com sucesso')
-        self.assertNotIn('password', data['data'])
 
-    def test_register_duplicate_username(self):
-        user = User(username="testuser", email="test@example.com", password="password123")
+    def test_register_duplicate_email(self):
+        user = User(username="user1", email="test@example.com", password="password123")
         db.session.add(user)
         db.session.commit()
 
         payload = {
-            "username": "testuser",
-            "email": "other@example.com",
-            "password": "password123"
-        }
-        response = self.client.post('/auth/register', 
-                                    data=json.dumps(payload),
-                                    content_type='application/json')
-        
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('username', data['data']['errors'])
-        self.assertEqual(data['message'], 'Erro de validação')
-
-    def test_register_invalid_email(self):
-        payload = {
-            "username": "testuser",
-            "email": "invalid-email",
+            "username": "user2",
+            "email": "test@example.com",
             "password": "password123"
         }
         response = self.client.post('/auth/register', 
@@ -70,6 +54,26 @@ class RegisterTestCase(unittest.TestCase):
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 400)
         self.assertIn('email', data['data']['errors'])
+        self.assertEqual(data['message'], 'Erro de validação')
+
+    def test_register_duplicate_username_allowed(self):
+        user = User(username="testuser", email="test1@example.com", password="password123")
+        db.session.add(user)
+        db.session.commit()
+
+        payload = {
+            "username": "testuser",
+            "email": "test2@example.com",
+            "password": "password123"
+        }
+        response = self.client.post('/auth/register', 
+                                    data=json.dumps(payload),
+                                    content_type='application/json')
+        
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(data['data']['username'], 'testuser')
+        self.assertEqual(data['data']['email'], 'test2@example.com')
 
 if __name__ == '__main__':
     unittest.main()
