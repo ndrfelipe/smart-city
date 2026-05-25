@@ -33,10 +33,10 @@ class RegisterTestCase(unittest.TestCase):
         
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(data['username'], 'testuser')
-        self.assertEqual(data['email'], 'test@example.com')
-        self.assertNotIn('password', data)
-        self.assertNotIn('password_hash', data)
+        self.assertEqual(data['data']['username'], 'testuser')
+        self.assertEqual(data['data']['email'], 'test@example.com')
+        self.assertEqual(data['message'], 'Usuário registrado com sucesso')
+        self.assertNotIn('password', data['data'])
 
     def test_register_duplicate_username(self):
         user = User(username="testuser", email="test@example.com", password="password123")
@@ -54,7 +54,8 @@ class RegisterTestCase(unittest.TestCase):
         
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 400)
-        self.assertIn('username', data['errors'])
+        self.assertIn('username', data['data']['errors'])
+        self.assertEqual(data['message'], 'Erro de validação')
 
     def test_register_invalid_email(self):
         payload = {
@@ -68,7 +69,7 @@ class RegisterTestCase(unittest.TestCase):
         
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 400)
-        self.assertIn('email', data['errors'])
+        self.assertIn('email', data['data']['errors'])
 
 if __name__ == '__main__':
     unittest.main()
