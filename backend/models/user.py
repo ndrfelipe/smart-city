@@ -1,4 +1,4 @@
-from extensions import db, bcrypt
+from config.extensions import db, bcrypt
 import datetime
 
 class User(db.Model):
@@ -28,3 +28,27 @@ class User(db.Model):
             'role': self.role,
             'created_at': self.created_at.isoformat()
         }
+    
+    @staticmethod
+    def get_user_by_username(username):
+        return User.query.filter_by(username=username).first()
+
+    @staticmethod
+    def get_user_by_email(email):
+        return User.query.filter_by(email=email).first()
+    
+    @staticmethod
+    def add(new_user : dict[str,str]):
+        user = User(
+                username=new_user['username'],
+                email=new_user['email'],
+                password=new_user['password'],
+                role=new_user['role']
+            )
+        try:
+            db.session.add(user)
+            db.session.commit()
+            return user
+        except Exception as e:
+            return False
+

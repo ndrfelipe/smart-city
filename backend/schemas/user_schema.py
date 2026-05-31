@@ -12,6 +12,11 @@ class UserRegistrationSchema(Schema):
         if User.query.filter_by(email=value).first():
             raise ValidationError('E-mail já cadastrado.')
 
+class UserLoginSchema(Schema):
+    email = fields.Email(required=True)
+    password = fields.String(required=True, validate=validate.Length(min=6))
+
+
 class UserResponseSchema(Schema):
     id = fields.Int()
     username = fields.Str()
