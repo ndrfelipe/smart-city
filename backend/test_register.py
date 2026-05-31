@@ -1,7 +1,7 @@
 import json
 import unittest
 from app import create_app
-from extensions import db
+from config.extensions import db
 from models.user import User
 import os
 

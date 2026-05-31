@@ -1,4 +1,4 @@
-from extensions import db, bcrypt
+from config.extensions import db, bcrypt
 import datetime
 
 class User(db.Model):
