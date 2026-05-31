@@ -28,3 +28,19 @@ class User(db.Model):
             'role': self.role,
             'created_at': self.created_at.isoformat()
         }
+    
+    @staticmethod
+    def add(new_user : dict[str,str]):
+        user = User(
+                username=new_user['username'],
+                email=new_user['email'],
+                password=new_user['password'],
+                role=new_user['role']
+            )
+        try:
+            db.session.add(user)
+            db.session.commit()
+            return user
+        except Exception as e:
+            return False
+

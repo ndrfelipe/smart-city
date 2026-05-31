@@ -1,22 +1,27 @@
-from config.extensions import db
 from models.user import User
 import jwt
 from datetime import timezone, datetime, timedelta
 from flask import current_app
+
+
 class AuthService:
     @staticmethod
     def register_user(username, email, password, role='cidadao'):
         # Criar instância do modelo User
         # O hash da senha é feito no __init__ do modelo User
-        new_user = User(
-            username=username,
-            email=email,
-            password=password,
-            role=role
-        )
         
-        db.session.add(new_user)
-        db.session.commit()
+        
+        new_user = User.add(
+            {
+            'username':username,
+            'email':email,
+            'password':password,
+            'role':role
+            }
+        )
+
+        if not new_user:
+            raise ValueError("Ocorreu algum problema no registro do usuário no BD.")
         
         return new_user
 
