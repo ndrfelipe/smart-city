@@ -47,7 +47,7 @@ class AuthService:
         return new_user
     
     @staticmethod
-    def login_user(email:str, password:str) -> dict:
+    def login_user(email:str, password:str) -> dict[str, str]:
         user = User.query.filter_by(email=email).first() 
         if not user or not user.check_password(password):
             raise ValueError("E-mail ou senha incorretos.")

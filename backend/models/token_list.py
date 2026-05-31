@@ -6,7 +6,7 @@ class TokenUsedList(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     token_id = db.Column(db.String(36), nullable=False, index=True)
-    created_at = db.Columnd(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __init__(self, token_id:str):
         self.token_id = token_id
