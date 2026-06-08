@@ -6,11 +6,11 @@ class Demanda(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(120), unique=True, nullable=False)
-    descricao = db.Column(db.String(500), unique=True, nullable=False)
-    categoria = db.Column(db.String(120), unique=True, nullable=False)
-    localizacao = db.Column(db.String(500), unique=True, nullable=False)
-    status = db.Column(db.String(20), unique=True, nullable=False, default='aberto')
-    prioridade = db.Column(db.String(20), unique=True, nullable=False)
+    descricao = db.Column(db.String(500), nullable=False)
+    categoria = db.Column(db.String(120), nullable=False)
+    localizacao = db.Column(db.String(500), nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='aberto')
+    prioridade = db.Column(db.String(20), nullable=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     # setor_id
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
