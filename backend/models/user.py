@@ -11,7 +11,7 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False, default='cidadao') # 'cidadao' ou 'gestor'
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     # cria uma lista de demandas associadas a este usuário.
-    demandas = db.relationship('Demandas', backref='autor', lazy=True)
+    demandas = db.relationship('Demanda', backref='autor', lazy=True)
     def __init__(self, username, email, password, role='cidadao'):
         self.username = username
         self.email = email

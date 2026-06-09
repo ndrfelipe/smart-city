@@ -3,7 +3,7 @@ import datetime
 from config.extensions import db
 from models.demanda import Demanda
 from models.user import User
-from schemas.demanda_schema import DemandaCreateSchema, DemandaUpdateSchema, DemandaQuerySchema
+from schemas.demandas_schema import DemandaCreateSchema, DemandaUpdateSchema, DemandaQuerySchema
  
  
 def _get_user_by_email(email: str) -> User:
