@@ -12,11 +12,9 @@ def required_token(f):
         token = get_token_by_header(request)
         if not token:
             return standard_response(message="Token não fornecido", status_code=401)
-        
-        
-
-        # DEBUG:
-        print(f"DEBUG: token capturado pelo middleware via header: {token}")
+                
+        # # DEBUG:
+        # print(f"DEBUG: token capturado pelo middleware via header: {token}")
         try:
             payload =jwt.decode(
                 token,
