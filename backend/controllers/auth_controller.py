@@ -20,16 +20,14 @@ class AuthController:
 
         try:
             # Validação via Marshmallow
-            # Nota: As validações de banco (username/email único) estão dentro do Schema
             data = cls.registration_schema.load(json_data)
             
-            # Chamada ao Service para lógica de negócio (persistência)
-            # A role é opcional; se não enviada, o Service/Model assume 'cidadao'
+            # Forçando role 'cidadao' para registros públicos via API
             new_user = AuthService.register_user(
                 username=data['username'],
                 email=data['email'],
                 password=data['password'],
-                **({'role': data['role']} if 'role' in data else {})
+                role='cidadao'
             )
             
             # Formatação da resposta
@@ -47,11 +45,9 @@ class AuthController:
                 status_code=400
             )
         except Exception as e:
-            # É necessário verificar como fazer para o rollback não ficar aqui!
             db.session.rollback()
             return standard_response(
                 message="Erro interno ao registrar usuário", 
-                data={"error": str(e)}, 
                 status_code=500
             )
         
@@ -63,13 +59,20 @@ class AuthController:
         
         try:
             data = cls.login_schema.load(json_data)
-            tokens = AuthService.login_user(
+            result = AuthService.login_user(
                 email=data['email'],
                 password=data['password']
             )
 
+            # Serializando os dados do usuário
+            user_data = cls.user_response_schema.dump(result['user'])
+            
             return standard_response(
-                data=tokens,
+                data={
+                    'access_token': result['access_token'],
+                    'refresh_token': result['refresh_token'],
+                    'user': user_data
+                },
                 message="Login realizado com sucesso",
                 status_code=200
             )
@@ -83,9 +86,20 @@ class AuthController:
         except Exception as e:
             return standard_response(
                 message="Erro interno ao fazer login",
-                data={"error": str(e)},
                 status_code=500
             )
+    
+    @classmethod
+    def get_me(cls):
+        # O payload do token está em request.current_user (injetado pelo middleware)
+        email = request.current_user.get('email')
+        user = User.get_user_by_email(email)
+        
+        if not user:
+            return standard_response(message="Usuário não encontrado", status_code=404)
+        
+        user_data = cls.user_response_schema.dump(user)
+        return standard_response(data=user_data, status_code=200)
         
     @classmethod
     def refresh(cls):

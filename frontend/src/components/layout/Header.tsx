@@ -1,11 +1,17 @@
 'use client';
+import { useMemo } from 'react';
 import { Box, Flex, Text, Avatar } from '@chakra-ui/react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 
 export function Header() {
   const user = useAuthStore((state) => state.user);
-  const userName = user ? user.name : 'Visitante';
+  
+  const userName = useMemo(() => {
+    if (!user || !user.name) return 'Visitante';
+    // Pega apenas o primeiro nome
+    return user.name.trim().split(' ')[0];
+  }, [user]);
 
   return (
     <Box bg="blue.600" px={4} py={3} color="white" shadow="md">
@@ -17,10 +23,9 @@ export function Header() {
         <Flex alignItems="center" gap={4}>
           <Text fontSize="sm">Olá, {userName}</Text>
           
-          {/* Atualizado para a sintaxe de Namespace do Chakra v3 */}
           <Avatar.Root size="sm">
             <Avatar.Fallback bg="blue.400" color="white">
-              C
+              {userName[0].toUpperCase()}
             </Avatar.Fallback>
           </Avatar.Root>
 
