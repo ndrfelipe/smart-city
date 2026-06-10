@@ -1,7 +1,7 @@
-
 import { User } from '@/types/User';
 import { Demand, CreateDemandDTO } from '@/types/Demand';
 import { DemandStatus } from '@/types/Status';
+import apiClient from './apiClient';
 
 let demandasMock: Demand[] = [
   {
@@ -39,74 +39,24 @@ let demandasMock: Demand[] = [
   }
 ];
 
-const usersMock: (User & { password: string })[] = [
-  {
-    id: '1',
-    name: 'João Cidadão',
-    email: 'joao@email.com',
-    role: 'CITIZEN',
-    createdAt: '2026-01-01',
-    password: '123456'
-  },
-  {
-    id: '2',
-    name: 'Maria Gestora',
-    email: 'maria@email.com',
-    role: 'MANAGER',
-    createdAt: '2026-01-01',
-    password: '123456'
-  }
-];
-
 export const api = {
-
   // Login
-  login: async (email: string, password: string): Promise<User | null> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const user = usersMock.find(u => u.email === email && u.password === password);
-        if (user) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { password: _, ...userWithoutPassword } = user;
-          resolve(userWithoutPassword);
-        } else {
-          resolve(null);
-        }
-      }, 500);
-    });
+  login: async (email: string, password: string): Promise<{ access_token: string; refresh_token: string }> => {
+    const response = await apiClient.post('/auth/login', { email, password });
+    return response.data.data;
   },
 
   // Registro
-  register: async (name: string, email: string, password: string): Promise<User | null> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const emailJaExiste = usersMock.find(u => u.email === email);
-        if (emailJaExiste) {
-          return reject(new Error('E-mail já cadastrado'));
-        }
-
-        const novoUsuario: User & { password: string } = {
-          id: String(usersMock.length + 1),
-          name,
-          email,
-          role: 'CITIZEN',
-          createdAt: new Date().toISOString(),
-          password,
-        };
-
-        usersMock.push(novoUsuario);
-
-        const { password: _, ...userWithoutPassword } = novoUsuario;
-        resolve(userWithoutPassword);
-      }, 500);
-    });
+  register: async (username: string, email: string, password: string, role: string = 'cidadao'): Promise<User> => {
+    const response = await apiClient.post('/auth/register', { username, email, password, role });
+    return response.data.data;
   },
 
   // 1. Buscar todas
   getDemandas: async (): Promise<Demand[]> => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve([...demandasMock]); // Retorna uma cópia do array
+        resolve([...demandasMock]);
       }, 1000); 
     });
   },
@@ -119,11 +69,11 @@ export const api = {
           ...dados,
           id: `CIV-${Math.floor(Math.random() * 10000)}`,
           status: 'PENDING',
-          userId: '1', // Mocking current user
+          userId: '1',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
-        demandasMock = [novaDemanda, ...demandasMock]; // Salva no Mock
+        demandasMock = [novaDemanda, ...demandasMock];
         resolve(novaDemanda);
       }, 1000);
     });
