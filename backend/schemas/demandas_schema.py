@@ -3,11 +3,11 @@ from models.demanda import Demanda
  
  
 CATEGORIAS_VALIDAS = [
-    'infraestrutura', 'saude', 'educacao', 'seguranca',
-    'meio_ambiente', 'transporte', 'outros'
+    'ROAD_MAINTENANCE', 'PUBLIC_LIGHTING', 'GARBAGE_COLLECTION',
+    'SANITATION', 'INSPECTION', 'OTHER'
 ]
  
-STATUS_VALIDOS    = ['aberto', 'em_andamento', 'concluido', 'cancelado']
+STATUS_VALIDOS    = ['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED']
 PRIORIDADES_VALIDAS = ['baixa', 'media', 'alta', 'urgente']
  
  
@@ -50,3 +50,49 @@ class DemandaQuerySchema(Schema):
     categoria  = fields.String(validate=validate.OneOf(CATEGORIAS_VALIDAS))
     page       = fields.Integer(load_default=1,  validate=validate.Range(min=1))
     per_page   = fields.Integer(load_default=10, validate=validate.Range(min=1, max=100))
+
+class DemandaResponseSchema(Schema):
+    id = fields.Int()
+    title = fields.Str(attribute='titulo')
+    description = fields.Str(attribute='descricao')
+    category = fields.Method("get_category")
+    location = fields.Str(attribute='localizacao')
+    status = fields.Method("get_status")
+    priority = fields.Str(attribute='prioridade')
+    createdAt = fields.DateTime(attribute='created_at')
+    updatedAt = fields.DateTime(attribute='updated_at')
+
+    def get_category(self, obj):
+        # Mapeamento robusto: converte tanto os novos valores quanto os antigos
+        mapping = {
+            'infraestrutura': 'ROAD_MAINTENANCE',
+            'saude': 'SANITATION',
+            'educacao': 'OTHER',
+            'seguranca': 'INSPECTION',
+            'meio_ambiente': 'GARBAGE_COLLECTION',
+            'transporte': 'ROAD_MAINTENANCE',
+            'outros': 'OTHER',
+            # Novos valores (caso já estejam em inglês no DB)
+            'ROAD_MAINTENANCE': 'ROAD_MAINTENANCE',
+            'PUBLIC_LIGHTING': 'PUBLIC_LIGHTING',
+            'GARBAGE_COLLECTION': 'GARBAGE_COLLECTION',
+            'SANITATION': 'SANITATION',
+            'INSPECTION': 'INSPECTION',
+            'OTHER': 'OTHER'
+        }
+        return mapping.get(obj.categoria, 'OTHER')
+
+    def get_status(self, obj):
+        # Mapeamento robusto: converte tanto os novos valores quanto os antigos
+        mapping = {
+            'aberto': 'PENDING',
+            'em_andamento': 'IN_PROGRESS',
+            'concluido': 'RESOLVED',
+            'cancelado': 'REJECTED',
+            # Novos valores
+            'PENDING': 'PENDING',
+            'IN_PROGRESS': 'IN_PROGRESS',
+            'RESOLVED': 'RESOLVED',
+            'REJECTED': 'REJECTED'
+        }
+        return mapping.get(obj.status, 'PENDING')

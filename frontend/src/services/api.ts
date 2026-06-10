@@ -3,96 +3,61 @@ import { Demand, CreateDemandDTO } from '@/types/Demand';
 import { DemandStatus } from '@/types/Status';
 import apiClient from './apiClient';
 
-let demandasMock: Demand[] = [
-  {
-    id: 'CIV-2938',
-    title: 'Poste apagado',
-    description: 'Poste apagado há 3 dias na Rua das Flores.',
-    category: 'PUBLIC_LIGHTING',
-    location: 'Rua das Flores, Centro',
-    status: 'PENDING',
-    userId: '1',
-    createdAt: '2026-03-25',
-    updatedAt: '2026-03-25',
-  },
-  {
-    id: 'CIV-2940',
-    title: 'Reparo asfáltico',
-    description: 'Reparo asfáltico emergencial na via.',
-    category: 'ROAD_MAINTENANCE',
-    location: 'Av. Central',
-    status: 'IN_PROGRESS',
-    userId: '1',
-    createdAt: '2026-03-26',
-    updatedAt: '2026-03-26',
-  },
-  {
-    id: 'CIV-2941',
-    title: 'Acúmulo de lixo',
-    description: 'Acúmulo de resíduos sólidos em via pública.',
-    category: 'GARBAGE_COLLECTION',
-    location: 'Praça da Matriz',
-    status: 'RESOLVED',
-    userId: '1',
-    createdAt: '2026-03-20',
-    updatedAt: '2026-03-20',
-  }
-];
-
 export const api = {
   // Login
-  login: async (email: string, password: string): Promise<{ access_token: string; refresh_token: string }> => {
+  login: async (email: string, password: string): Promise<{ access_token: string; refresh_token: string; user: User }> => {
     const response = await apiClient.post('/auth/login', { email, password });
     return response.data.data;
   },
 
   // Registro
-  register: async (username: string, email: string, password: string, role: string = 'cidadao'): Promise<User> => {
-    const response = await apiClient.post('/auth/register', { username, email, password, role });
+  register: async (username: string, email: string, password: string): Promise<User> => {
+    const response = await apiClient.post('/auth/register', { username, email, password });
     return response.data.data;
   },
 
-  // 1. Buscar todas
-  getDemandas: async (): Promise<Demand[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([...demandasMock]);
-      }, 1000); 
-    });
+  // Buscar usuário atual
+  getMe: async (): Promise<User> => {
+    const response = await apiClient.get('/auth/me');
+    return response.data.data;
   },
 
-  // 2. Criar uma nova
+  // Atualizar perfil do usuário
+  updateProfile: async (dados: Partial<User & { password?: string }>): Promise<User> => {
+    // Mapeando 'name' do front para 'username' do back se necessário
+    const payload: any = { ...dados };
+    if (dados.name) {
+      payload.username = dados.name;
+      delete payload.name;
+    }
+    
+    const response = await apiClient.patch('/auth/update', payload);
+    return response.data.data;
+  },
+
+  // 1. Buscar todas as demandas
+  getDemandas: async (): Promise<Demand[]> => {
+    const response = await apiClient.get('/api/demandas');
+    return response.data.data.demandas;
+  },
+
+  // 2. Criar uma nova demanda
   addDemanda: async (dados: CreateDemandDTO): Promise<Demand> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const novaDemanda: Demand = {
-          ...dados,
-          id: `CIV-${Math.floor(Math.random() * 10000)}`,
-          status: 'PENDING',
-          userId: '1',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        demandasMock = [novaDemanda, ...demandasMock];
-        resolve(novaDemanda);
-      }, 1000);
-    });
+    // Mapeando campos do front para o back (provisório até unificar)
+    const payload = {
+      titulo: dados.title,
+      descricao: dados.description,
+      categoria: dados.category,
+      localizacao: dados.location,
+      prioridade: 'media' // Valor padrão pois o front não envia
+    };
+    const response = await apiClient.post('/api/demandas', payload);
+    return response.data.data.demanda;
   },
 
   // 3. Atualizar status
   updateStatus: async (id: string, novoStatus: DemandStatus): Promise<Demand> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const index = demandasMock.findIndex(d => d.id === id);
-        if (index === -1) return reject(new Error('Demanda não encontrada'));
-
-        demandasMock[index] = { 
-          ...demandasMock[index], 
-          status: novoStatus,
-          updatedAt: new Date().toISOString()
-        };
-        resolve(demandasMock[index]);
-      }, 800); 
-    });
+    const response = await apiClient.patch(`/api/demandas/${id}`, { status: novoStatus });
+    return response.data.data.demanda;
   }
 };

@@ -31,18 +31,9 @@ export default function Login() {
     setError('');
 
     try {
-      const tokens = await api.login(email, password);
-      if (tokens && tokens.access_token) {
-        // Here we ideally want the user object. 
-        // For now, let's create a partial user from what we know or wait for a user fetch.
-        // Since we don't have a /me endpoint yet, I'll mock the user object from the email.
-        const mockUser: any = { 
-          id: '1', 
-          name: email.split('@')[0], 
-          email: email, 
-          role: 'CITIZEN' 
-        };
-        setAuth(mockUser, tokens.access_token);
+      const data = await api.login(email, password);
+      if (data && data.access_token && data.user) {
+        setAuth(data.user, data.access_token);
         router.push('/dashboard');
       } else {
         setError('Email ou senha inválidos');

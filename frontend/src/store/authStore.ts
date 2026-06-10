@@ -6,9 +6,6 @@ interface AuthState {
   isAuthenticated: boolean;
   setAuth: (user: User, accessToken: string) => void;
   logout: () => void;
-  // Mantendo funções de simulação para visualização
-  loginAsCidadao: () => void;
-  loginAsGestor: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -26,14 +23,4 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem('user');
     set({ user: null, isAuthenticated: false });
   },
-
-  loginAsCidadao: () => set({ 
-    user: { id: 'USR-001', name: 'Ana Maria', role: 'CITIZEN', email: 'ana.maria@exemplo.com', createdAt: new Date().toISOString() },
-    isAuthenticated: true 
-  }),
-
-  loginAsGestor: () => set({ 
-    user: { id: 'USR-999', name: 'Joao Silva', role: 'MANAGER', email: 'joao.silva@gestao.pe.gov.br', createdAt: new Date().toISOString() },
-    isAuthenticated: true 
-  }),
 }));

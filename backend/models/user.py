@@ -53,3 +53,21 @@ class User(db.Model):
         except Exception as e:
             return False
 
+    def update(self, data: dict):
+        """
+        Atualiza os campos do usuário a partir de um dicionário.
+        Faz o hash automático se o campo 'password' for fornecido.
+        """
+        for key, value in data.items():
+            if key == 'password':
+                self.password_hash = bcrypt.generate_password_hash(value).decode('utf-8')
+            elif hasattr(self, key) and key != 'id':
+                setattr(self, key, value)
+        
+        try:
+            db.session.commit()
+            return True
+        except Exception:
+            db.session.rollback()
+            return False
+
