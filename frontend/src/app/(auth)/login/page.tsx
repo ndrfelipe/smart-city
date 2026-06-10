@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { MdError } from 'react-icons/md';
 import { api } from '@/services/api';
+import { useAuthStore } from '@/store/authStore';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -22,22 +23,32 @@ export default function Login() {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  const setAuth = useAuthStore((state) => state.setAuth);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     try {
-      const user = await api.login(email, password);
-      if (user) {
-        // In a real app, you'd store the user in context or localStorage
-        localStorage.setItem('user', JSON.stringify(user));
+      const tokens = await api.login(email, password);
+      if (tokens && tokens.access_token) {
+        // Here we ideally want the user object. 
+        // For now, let's create a partial user from what we know or wait for a user fetch.
+        // Since we don't have a /me endpoint yet, I'll mock the user object from the email.
+        const mockUser: any = { 
+          id: '1', 
+          name: email.split('@')[0], 
+          email: email, 
+          role: 'CITIZEN' 
+        };
+        setAuth(mockUser, tokens.access_token);
         router.push('/dashboard');
       } else {
         setError('Email ou senha inválidos');
       }
-    } catch {
-      setError('Erro ao fazer login');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Erro ao fazer login');
     } finally {
       setIsLoading(false);
     }

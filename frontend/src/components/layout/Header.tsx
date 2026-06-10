@@ -1,8 +1,12 @@
 'use client';
 import { Box, Flex, Text, Avatar } from '@chakra-ui/react';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/authStore';
 
 export function Header() {
+  const user = useAuthStore((state) => state.user);
+  const userName = user ? user.name : 'Visitante';
+
   return (
     <Box bg="blue.600" px={4} py={3} color="white" shadow="md">
       <Flex h={12} alignItems="center" justifyContent="space-between">
@@ -11,7 +15,7 @@ export function Header() {
         </Text>
         
         <Flex alignItems="center" gap={4}>
-          <Text fontSize="sm">Olá, Cidadão</Text>
+          <Text fontSize="sm">Olá, {userName}</Text>
           
           {/* Atualizado para a sintaxe de Namespace do Chakra v3 */}
           <Avatar.Root size="sm">
