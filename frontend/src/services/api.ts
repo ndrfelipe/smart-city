@@ -22,6 +22,19 @@ export const api = {
     return response.data.data;
   },
 
+  // Atualizar perfil do usuário
+  updateProfile: async (dados: Partial<User & { password?: string }>): Promise<User> => {
+    // Mapeando 'name' do front para 'username' do back se necessário
+    const payload: any = { ...dados };
+    if (dados.name) {
+      payload.username = dados.name;
+      delete payload.name;
+    }
+    
+    const response = await apiClient.patch('/auth/update', payload);
+    return response.data.data;
+  },
+
   // 1. Buscar todas as demandas
   getDemandas: async (): Promise<Demand[]> => {
     const response = await apiClient.get('/api/demandas');

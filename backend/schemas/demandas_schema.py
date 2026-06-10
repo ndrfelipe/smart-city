@@ -55,9 +55,44 @@ class DemandaResponseSchema(Schema):
     id = fields.Int()
     title = fields.Str(attribute='titulo')
     description = fields.Str(attribute='descricao')
-    category = fields.Str(attribute='categoria')
+    category = fields.Method("get_category")
     location = fields.Str(attribute='localizacao')
-    status = fields.Str()
+    status = fields.Method("get_status")
     priority = fields.Str(attribute='prioridade')
     createdAt = fields.DateTime(attribute='created_at')
     updatedAt = fields.DateTime(attribute='updated_at')
+
+    def get_category(self, obj):
+        # Mapeamento robusto: converte tanto os novos valores quanto os antigos
+        mapping = {
+            'infraestrutura': 'ROAD_MAINTENANCE',
+            'saude': 'SANITATION',
+            'educacao': 'OTHER',
+            'seguranca': 'INSPECTION',
+            'meio_ambiente': 'GARBAGE_COLLECTION',
+            'transporte': 'ROAD_MAINTENANCE',
+            'outros': 'OTHER',
+            # Novos valores (caso já estejam em inglês no DB)
+            'ROAD_MAINTENANCE': 'ROAD_MAINTENANCE',
+            'PUBLIC_LIGHTING': 'PUBLIC_LIGHTING',
+            'GARBAGE_COLLECTION': 'GARBAGE_COLLECTION',
+            'SANITATION': 'SANITATION',
+            'INSPECTION': 'INSPECTION',
+            'OTHER': 'OTHER'
+        }
+        return mapping.get(obj.categoria, 'OTHER')
+
+    def get_status(self, obj):
+        # Mapeamento robusto: converte tanto os novos valores quanto os antigos
+        mapping = {
+            'aberto': 'PENDING',
+            'em_andamento': 'IN_PROGRESS',
+            'concluido': 'RESOLVED',
+            'cancelado': 'REJECTED',
+            # Novos valores
+            'PENDING': 'PENDING',
+            'IN_PROGRESS': 'IN_PROGRESS',
+            'RESOLVED': 'RESOLVED',
+            'REJECTED': 'REJECTED'
+        }
+        return mapping.get(obj.status, 'PENDING')

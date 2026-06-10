@@ -66,13 +66,13 @@ class DemandaController:
     def atualizar_demanda(demanda_id:int):
         email = request.current_user['email']
         # Buscando o usuário para verificar o cargo (role)
+        from models.user import User
         user = User.get_user_by_email(email)
         
-        if not user or user.role == 'cidadao':
-            return standard_response(
-                message="Não é possível cidadão atualizar demanda", 
-                status_code=403
-            )
+        # Removida a restrição total que bloqueava gestores. 
+        # A lógica de quem pode editar o quê está dentro do DemandaService.atualizar_demanda
+        if not user:
+            return standard_response(message="Usuário não encontrado", status_code=404)
 
         data  = request.get_json(silent=True) or {}
     
@@ -86,7 +86,8 @@ class DemandaController:
         except LookupError as e:
             return standard_response(message=str(e), status_code=404)
         except PermissionError as e:
-            return standard_response(message=str(e), status_code=403)
+            # Aqui retornamos a sua mensagem personalizada quando for um cidadão tentando o que não deve
+            return standard_response(message="Não é possível cidadão atualizar demanda", status_code=403)
         except ValueError as e:
             return standard_response(message='Dados inválidos.', data={'errors': e.args[0]}, status_code=422)
     

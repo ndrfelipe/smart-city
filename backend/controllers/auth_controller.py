@@ -1,5 +1,6 @@
 from flask import request
 from services.auth_service import AuthService
+from models.user import User
 from schemas.user_schema import UserRegistrationSchema, UserResponseSchema, UserLoginSchema
 from marshmallow import ValidationError
 from utils.responses import standard_response
@@ -100,6 +101,29 @@ class AuthController:
         
         user_data = cls.user_response_schema.dump(user)
         return standard_response(data=user_data, status_code=200)
+
+    @classmethod
+    def update_profile(cls):
+        email = request.current_user.get('email')
+        user = User.get_user_by_email(email)
+        
+        if not user:
+            return standard_response(message="Usuário não encontrado", status_code=404)
+        
+        json_data = request.get_json()
+        if not json_data:
+            return standard_response(message="Nenhum dado fornecido", status_code=400)
+        
+        # O método update no Model já cuida de hash de senha e commit
+        if user.update(json_data):
+            user_data = cls.user_response_schema.dump(user)
+            return standard_response(
+                data=user_data, 
+                message="Perfil atualizado com sucesso", 
+                status_code=200
+            )
+        else:
+            return standard_response(message="Erro ao atualizar perfil", status_code=500)
         
     @classmethod
     def refresh(cls):
