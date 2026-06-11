@@ -63,7 +63,7 @@ class DemandaService:
  
         query = Demanda.query
  
-        # Escopo por papel
+        # Escopo por papel: Cidadãos só veem o que criaram
         if user.role != 'gestor':
             query = query.filter_by(usuario_id=user.id)
  

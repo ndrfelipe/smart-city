@@ -2,8 +2,10 @@ from flask import request
  
 from services.demandas_service import DemandaService
 from utils.responses import standard_response
+from schemas.demandas_schema import DemandaResponseSchema
 
 class DemandaController:
+    demanda_response_schema = DemandaResponseSchema()
 
     @staticmethod
     def criar_demanda():
@@ -14,7 +16,7 @@ class DemandaController:
             demanda = DemandaService.criar_demanda(data, email=email)
             return standard_response(
                 message='Demanda criada com sucesso.',
-                data={'demanda': demanda.to_dict()},
+                data={'demanda': DemandaController.demanda_response_schema.dump(demanda)},
                 status_code=201
             )
         except LookupError as e:
@@ -31,7 +33,7 @@ class DemandaController:
             paginacao = DemandaService.listar_demandas(query_params, email=email)
             return standard_response(
                 data={
-                    'demandas': [d.to_dict() for d in paginacao.items],
+                    'demandas': DemandaController.demanda_response_schema.dump(paginacao.items, many=True),
                     'paginacao': {
                         'total':       paginacao.total,
                         'paginas':     paginacao.pages,
@@ -54,7 +56,7 @@ class DemandaController:
     
         try:
             demanda = DemandaService.obter_demanda(demanda_id, email=email)
-            return standard_response(data={'demanda': demanda.to_dict()}, status_code=200)
+            return standard_response(data={'demanda': DemandaController.demanda_response_schema.dump(demanda)}, status_code=200)
         except LookupError as e:
             return standard_response(message=str(e), status_code=404)
         except PermissionError as e:
@@ -63,19 +65,29 @@ class DemandaController:
     @staticmethod
     def atualizar_demanda(demanda_id:int):
         email = request.current_user['email']
+        # Buscando o usuário para verificar o cargo (role)
+        from models.user import User
+        user = User.get_user_by_email(email)
+        
+        # Removida a restrição total que bloqueava gestores. 
+        # A lógica de quem pode editar o quê está dentro do DemandaService.atualizar_demanda
+        if not user:
+            return standard_response(message="Usuário não encontrado", status_code=404)
+
         data  = request.get_json(silent=True) or {}
     
         try:
             demanda = DemandaService.atualizar_demanda(demanda_id, data, email=email)
             return standard_response(
                 message='Demanda atualizada com sucesso.',
-                data={'demanda': demanda.to_dict()},
+                data={'demanda': DemandaController.demanda_response_schema.dump(demanda)},
                 status_code=200
             )
         except LookupError as e:
             return standard_response(message=str(e), status_code=404)
         except PermissionError as e:
-            return standard_response(message=str(e), status_code=403)
+            # Aqui retornamos a sua mensagem personalizada quando for um cidadão tentando o que não deve
+            return standard_response(message="Não é possível cidadão atualizar demanda", status_code=403)
         except ValueError as e:
             return standard_response(message='Dados inválidos.', data={'errors': e.args[0]}, status_code=422)
     

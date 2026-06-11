@@ -19,7 +19,14 @@ class UserLoginSchema(Schema):
 
 class UserResponseSchema(Schema):
     id = fields.Int()
-    username = fields.Str()
+    name = fields.Str(attribute='username')
     email = fields.Str()
-    role = fields.Str()
-    created_at = fields.DateTime()
+    role = fields.Method("get_role")
+    createdAt = fields.DateTime(attribute='created_at')
+
+    def get_role(self, obj):
+        roles_map = {
+            'cidadao': 'CITIZEN',
+            'gestor': 'MANAGER'
+        }
+        return roles_map.get(obj.role, obj.role)
