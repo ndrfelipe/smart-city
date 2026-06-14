@@ -25,7 +25,7 @@ export const api = {
   // Atualizar perfil do usuário
   updateProfile: async (dados: Partial<User & { password?: string }>): Promise<User> => {
     // Mapeando 'name' do front para 'username' do back se necessário
-    const payload: any = { ...dados };
+    const payload: Record<string, unknown> = { ...dados };
     if (dados.name) {
       payload.username = dados.name;
       delete payload.name;

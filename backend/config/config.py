@@ -24,8 +24,8 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    print(f"Gerando secret key randômica.")
-    app.config['SECRET_KEY'] = create_random_string()
+    print(f"Configurando secret key.")
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', create_random_string())
 
     print("Inicializando extensões")
     db.init_app(app)
