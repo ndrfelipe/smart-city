@@ -45,8 +45,9 @@ export default function Cadastro() {
       const username = `${nome} ${sobrenome}`.trim();
       await api.register(username, email, senha);
       router.push('/login');
-    } catch (err: any) {
-      setErro(err.response?.data?.message || 'Erro ao cadastrar. Tente novamente.');
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setErro(error.response?.data?.message || 'Erro ao cadastrar. Tente novamente.');
     } finally {
       setLoading(false);
     }
