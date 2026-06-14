@@ -38,8 +38,9 @@ export default function Login() {
       } else {
         setError('Email ou senha inválidos');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao fazer login');
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Erro ao fazer login');
     } finally {
       setIsLoading(false);
     }

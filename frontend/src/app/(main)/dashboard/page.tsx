@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Box,
-  Button,
   Flex,
   Grid,
   GridItem,
@@ -24,7 +23,16 @@ import { AppCard } from "@/components/ui/AppCard";
 
 // --- SUB-COMPONENTES DE UI ---
 
-const StatCard = ({ title, value, label, icon: Icon, badge, color }: any) => (
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  label: string;
+  icon: React.ElementType;
+  badge?: string;
+  color: string;
+}
+
+const StatCard = ({ title, value, label, icon: Icon, badge, color }: StatCardProps) => (
   <AppCard>
     <Flex justify="space-between" align="start">
       <Box>
