@@ -2,7 +2,7 @@
 
 Bem-vindos ao repositório da nossa Plataforma de Gestão de Demandas Urbanas! Este projeto é um MVP (Minimum Viable Product) focado em centralizar o registro, acompanhamento e gestão de solicitações públicas (como buracos em vias, iluminação e saneamento), conectando cidadãos e gestores públicos.
 
-**Componentes do Grupo:** [Insira o Nome dos Integrantes Aqui]
+**Componentes do Grupo:** André Felipe, Deyvison Conrado, Jeniffer Cristine, Letícia Gabriella, Manuele Macêdo, Maria Aparecida
 
 ---
 
