@@ -5,7 +5,11 @@ from models.demanda import Demanda
 from models.user import User
 from schemas.demandas_schema import DemandaCreateSchema, DemandaUpdateSchema, DemandaQuerySchema
  
+# Cache simples em memória para reduzir chamadas redundantes ao banco
+# e devolver resultados de listagem mais rapidamente.
+_LISTAR_DEMANDAS_CACHE = {}
  
+
 def _get_user_by_email(email: str) -> User:
     """
     Busca o usuário pelo e-mail extraído do payload JWT.
@@ -45,6 +49,8 @@ class DemandaService:
  
         db.session.add(demanda)
         db.session.commit()
+        # Limpa o cache de listagem porque uma nova demanda foi adicionada.
+        _LISTAR_DEMANDAS_CACHE.clear()
         return demanda
  
     @staticmethod
@@ -60,6 +66,14 @@ class DemandaService:
  
         user = _get_user_by_email(email)
         params = schema.load(query_params)
+ 
+        # Chave única para o cache baseada no email do usuário e nos parâmetros de consulta.
+        cache_key = (
+            email,
+            tuple(sorted((k, tuple(v) if isinstance(v, list) else v) for k, v in query_params.items()))
+        )
+        if cache_key in _LISTAR_DEMANDAS_CACHE:
+            return _LISTAR_DEMANDAS_CACHE[cache_key]
  
         query = Demanda.query
  
@@ -138,6 +152,8 @@ class DemandaService:
  
         demanda.updated_at = datetime.datetime.utcnow()
         db.session.commit()
+        # Limpa o cache de listagem após a atualização para manter os dados consistentes.
+        _LISTAR_DEMANDAS_CACHE.clear()
         return demanda
  
     @staticmethod
@@ -161,3 +177,5 @@ class DemandaService:
  
         db.session.delete(demanda)
         db.session.commit()
+        # Limpa o cache de listagem após a remoção de uma demanda.
+        _LISTAR_DEMANDAS_CACHE.clear()

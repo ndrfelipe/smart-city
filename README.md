@@ -2,7 +2,46 @@
 
 Bem-vindos ao repositório da nossa Plataforma de Gestão de Demandas Urbanas! Este projeto é um MVP (Minimum Viable Product) focado em centralizar o registro, acompanhamento e gestão de solicitações públicas (como buracos em vias, iluminação e saneamento), conectando cidadãos e gestores públicos.
 
+**Componentes do Grupo:** [Insira o Nome dos Integrantes Aqui]
+
 O projeto é composto por um front-end em Next.js e um back-end em Flask (Python).
+
+---
+
+**Requisitos para a disciplina Fundamentos de Computação Concorrente, Paralela e Distribuída**
+
+
+## 1. Arquitetura Distribuída e Desenho da Arquitetura
+O projeto adota o modelo arquitetural **Cliente-Servidor (Web Desacoplada)**. A escolha justifica-se pela separação clara de responsabilidades: o cliente lida estritamente com a interface do usuário e visualização, enquanto o servidor gerencia as regras de negócio, persistência e integridade dos dados da cidade.
+
+### Componentes e Tecnologias:
+* **Frontend (Cliente):** Desenvolvido em **Next.js (React / TypeScript)**, responsável por renderizar os painéis e interações da Smart City.
+* **Backend (Servidor):** Desenvolvido em **Python**, utilizando uma estrutura modular organizada em rotas, controllers, schemas e services (Flask/FastAPI).
+* **Comunicação:** Ocorre exclusivamente através do protocolo **HTTP/REST**, utilizando o formato JSON para o intercâmbio de dados.
+
+### Diagrama de Arquitetura:
+* **Fluxo:** [ FRONTEND (Next.js) ] --( Requisições HTTP/REST / JSON )--> [ BACKEND (Python API) ]
+* **Simulação:** [ SCRIPT DE TESTE (Python) ] --( Multi-threads / HTTP POST )--> [ BACKEND (Python API) ]
+
+---
+
+## 2. Concorrência e Paralelismo
+* **Mecanismo Utilizado:** Múltiplas Threads (módulo nativo `threading` do Python).
+* **Componente/Módulo:** Localizado no script de simulação/testes (`backend/test_register.py`).
+* **Problema Resolvido:** Em uma Smart City real, múltiplos dispositivos IoT e usuários enviam eventos ao mesmo tempo. O mecanismo de threads permite simular múltiplos fluxos paralelos injetando dados na API HTTP de forma assíncrona, garantindo que o envio de uma requisição não bloqueie nem atrase a execução das outras.
+
+---
+
+## 3. Otimização
+* **Ponto de Implementação:** No módulo de serviços do servidor (`backend/services/demandas_service.py`).
+* **O que foi feito:** Foi implementada uma técnica de **Cache em Memória** na listagem de demandas. Ao receber requisições de leitura ou consultas repetitivas dos estados da cidade, o sistema consulta primeiro uma estrutura de cache local (`_LISTAR_DEMANDAS_CACHE`). Se o dado existir, ele é retornado instantaneamente, reduzindo drasticamente o tempo de resposta e poupando recursos de processamento e acessos ao banco de dados. O cache é automaticamente invalidado (limpo) em qualquer operação de escrita (criação, edição ou deleção) para garantir a consistência dos dados.
+* **Otimização Futura:** Para cenários de grande escala, o cache em memória local poderia ser migrado para uma instância dedicada de **Redis**, e o protocolo HTTP tradicional substituído por **WebSockets** ou **gRPC** para comunicação bidirecional de baixíssima latência.
+
+
+
+
+
+---
 
 ## Tecnologias Utilizadas
 
