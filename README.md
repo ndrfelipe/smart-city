@@ -4,11 +4,9 @@ Bem-vindos ao repositório da nossa Plataforma de Gestão de Demandas Urbanas! E
 
 **Componentes do Grupo:** [Insira o Nome dos Integrantes Aqui]
 
-O projeto é composto por um front-end em Next.js e um back-end em Flask (Python).
-
 ---
 
-**Requisitos para a disciplina Fundamentos de Computação Concorrente, Paralela e Distribuída**
+## Requisitos para a disciplina Fundamentos de Computação Concorrente, Paralela e Distribuída
 
 
 ## 1. Arquitetura Distribuída e Desenho da Arquitetura
@@ -36,6 +34,11 @@ O projeto adota o modelo arquitetural **Cliente-Servidor (Web Desacoplada)**. A 
 * **Ponto de Implementação:** No módulo de serviços do servidor (`backend/services/demandas_service.py`).
 * **O que foi feito:** Foi implementada uma técnica de **Cache em Memória** na listagem de demandas. Ao receber requisições de leitura ou consultas repetitivas dos estados da cidade, o sistema consulta primeiro uma estrutura de cache local (`_LISTAR_DEMANDAS_CACHE`). Se o dado existir, ele é retornado instantaneamente, reduzindo drasticamente o tempo de resposta e poupando recursos de processamento e acessos ao banco de dados. O cache é automaticamente invalidado (limpo) em qualquer operação de escrita (criação, edição ou deleção) para garantir a consistência dos dados.
 * **Otimização Futura:** Para cenários de grande escala, o cache em memória local poderia ser migrado para uma instância dedicada de **Redis**, e o protocolo HTTP tradicional substituído por **WebSockets** ou **gRPC** para comunicação bidirecional de baixíssima latência.
+
+## 4. Otimização
+* **Ponto de Implementação:** No componente de regras de negócio do servidor, localizado em `backend/services/demandas_service.py`.
+* **O que foi feito e Impacto Esperado:** Foi implementado um mecanismo de **Cache em Memória** (`_LISTAR_DEMANDAS_CACHE`) no método `listar_demandas`. Quando um gestor ou cidadão solicita a listagem de demandas com os mesmos parâmetros de busca repetidas vezes, o sistema intercepta a requisição e devolve o resultado direto da memória RAM. O impacto esperado é uma redução drástica no tempo de resposta (latência) para o usuário final, além de poupar o overhead do ORM e evitar consultas redundantes de I/O na base de dados PostgreSQL. Para garantir a consistência de dados, o cache é completamente limpo (`cache.clear()`) em qualquer operação de mutação (`criar_demanda`, `atualizar_demanda` ou `deletar_demanda`).
+* **Otimização Futura:** Como a arquitetura do projeto já mapeia o uso de **Redis**, o próximo passo evolutivo de otimização consiste em mover esse cache em memória volátil do processo Python para a instância isolada do Redis. Isso garantirá que, em caso de escalabilidade horizontal (múltiplas instâncias do servidor Flask rodando em paralelo), todos os servidores compartilhem do mesmo estado de cache centralizado e persistente em memória.
 
 
 
