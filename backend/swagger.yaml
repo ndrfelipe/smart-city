@@ -1,0 +1,789 @@
+openapi: 3.0.0
+info:
+  title: Smart City API
+  description: API para gerenciamento de demandas urbanas (ex. buracos na rua, iluminação).
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Servidor Local
+  - url: https://seu-app.onrender.com
+    description: Servidor de Produção (Render)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: joao_silva
+        email:
+          type: string
+          example: joao@email.com
+        role:
+          type: string
+          example: CITIZEN
+        createdAt:
+          type: string
+          format: date-time
+
+    DemandaResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Buraco na via principal
+        description:
+          type: string
+          example: Há um buraco muito grande.
+        category:
+          type: string
+          example: ROAD_MAINTENANCE
+        location:
+          type: string
+          example: Av. Paulista, 1000
+        status:
+          type: string
+          example: PENDING
+        priority:
+          type: string
+          example: alta
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    StandardResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          nullable: true
+        message:
+          type: string
+          example: Operação realizada com sucesso
+        status_code:
+          type: integer
+          example: 200
+
+    ErrorResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          nullable: true
+        message:
+          type: string
+          example: Mensagem de erro descritiva
+        status_code:
+          type: integer
+          example: 400
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            errors:
+              type: object
+              example: {"email": ["E-mail já cadastrado."], "password": ["Shorter than minimum length 6."]}
+        message:
+          type: string
+          example: Erro de validação
+        status_code:
+          type: integer
+          example: 400
+
+paths:
+  /auth/register:
+    post:
+      summary: Registro de Novo Usuário
+      tags:
+        - Autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  example: joao_silva
+                email:
+                  type: string
+                  format: email
+                  example: joao@email.com
+                password:
+                  type: string
+                  format: password
+                  example: "123456"
+                  minLength: 6
+      responses:
+        '201':
+          description: Usuário registrado com sucesso.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+                      message:
+                        example: "Usuário registrado com sucesso"
+                      status_code:
+                        example: 201
+        '400':
+          description: Erro de validação (ex. payload vazio ou dados inválidos).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '500':
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Erro interno ao registrar usuário"
+                  status_code: 500
+
+  /auth/login:
+    post:
+      summary: Login de Usuário
+      tags:
+        - Autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: joao@email.com
+                password:
+                  type: string
+                  format: password
+                  example: "123456"
+      responses:
+        '200':
+          description: Login realizado com sucesso (Retorna tokens e dados do usuário).
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          access_token:
+                            type: string
+                            example: "eyJhbGciOiJIUzI1NiIsInR..."
+                          refresh_token:
+                            type: string
+                            example: "eyJhbGciOiJIUzI1NiIsInR..."
+                          user:
+                            $ref: '#/components/schemas/UserResponse'
+                      message:
+                        example: "Login realizado com sucesso"
+                      status_code:
+                        example: 200
+        '400':
+          description: Erro de validação ou payload vazio.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '500':
+          description: Erro interno ou credenciais inválidas (a regra de credenciais gera exception tratada como 500 no controller atual).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Erro interno ao fazer login"
+                  status_code: 500
+
+  /auth/me:
+    get:
+      summary: Obter Perfil Atual
+      tags:
+        - Autenticação
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dados do usuário logado.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+                      message:
+                        example: ""
+                      status_code:
+                        example: 200
+        '404':
+          description: Usuário não encontrado no banco de dados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Usuário não encontrado"
+                  status_code: 404
+
+  /auth/update:
+    patch:
+      summary: Atualizar Perfil / Role
+      tags:
+        - Autenticação
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum: [cidadao, gestor]
+                  example: gestor
+      responses:
+        '200':
+          description: Perfil atualizado com sucesso.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+                      message:
+                        example: "Perfil atualizado com sucesso"
+                      status_code:
+                        example: 200
+        '400':
+          description: Nenhum dado fornecido no payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Nenhum dado fornecido"
+                  status_code: 400
+        '404':
+          description: Usuário não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Usuário não encontrado"
+                  status_code: 404
+        '500':
+          description: Erro ao salvar a atualização no banco.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Erro ao atualizar perfil"
+                  status_code: 500
+
+  /auth/refresh:
+    post:
+      summary: Atualizar Token (Refresh Token)
+      tags:
+        - Autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Novos tokens gerados.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          access_token:
+                            type: string
+                          refresh_token:
+                            type: string
+                      message:
+                        example: "Token renovado"
+                      status_code:
+                        example: 200
+        '400':
+          description: Refresh token não fornecido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Refresh token não fornecido"
+                  status_code: 400
+        '401':
+          description: Token inválido, expirado ou já utilizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Refresh token expirado, faça login novamente"
+                  status_code: 401
+
+  /auth/logout:
+    get:
+      summary: Realizar Logout
+      tags:
+        - Autenticação
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout realizado com sucesso.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: "null"
+                      message:
+                        example: "Logout realizado com sucesso"
+                      status_code:
+                        example: 200
+        '400':
+          description: Token já invalidado ou inválido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Token já invalidado"
+                  status_code: 400
+        '401':
+          description: Token não fornecido no header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Token não fornecido"
+                  status_code: 401
+
+  /api/demandas:
+    get:
+      summary: Listar Demandas
+      tags:
+        - Demandas
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [PENDING, IN_PROGRESS, RESOLVED, REJECTED]
+        - in: query
+          name: categoria
+          schema:
+            type: string
+            enum: [ROAD_MAINTENANCE, PUBLIC_LIGHTING, GARBAGE_COLLECTION, SANITATION, INSPECTION, OTHER]
+        - in: query
+          name: prioridade
+          schema:
+            type: string
+            enum: [baixa, media, alta, urgente]
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Lista de demandas paginada.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          demandas:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/DemandaResponse'
+                          paginacao:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                                example: 25
+                              paginas:
+                                type: integer
+                                example: 3
+                              pagina_atual:
+                                type: integer
+                                example: 1
+                              por_pagina:
+                                type: integer
+                                example: 10
+                              tem_proxima:
+                                type: boolean
+                                example: true
+                              tem_anterior:
+                                type: boolean
+                                example: false
+                      message:
+                        example: ""
+                      status_code:
+                        example: 200
+        '404':
+          description: Usuário não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Usuário não encontrado"
+                  status_code: 404
+        '422':
+          description: Parâmetros de query inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+                example:
+                  data:
+                    errors: {"status": ["Must be one of: PENDING, IN_PROGRESS..."]}
+                  message: "Parâmetros inválidos."
+                  status_code: 422
+
+    post:
+      summary: Criar Nova Demanda
+      tags:
+        - Demandas
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - titulo
+                - descricao
+                - categoria
+                - localizacao
+                - prioridade
+              properties:
+                titulo:
+                  type: string
+                  example: Buraco na via principal
+                descricao:
+                  type: string
+                  example: Há um buraco muito grande.
+                categoria:
+                  type: string
+                  enum: [ROAD_MAINTENANCE, PUBLIC_LIGHTING, GARBAGE_COLLECTION, SANITATION, INSPECTION, OTHER]
+                  example: ROAD_MAINTENANCE
+                localizacao:
+                  type: string
+                  example: Av. Paulista, 1000
+                prioridade:
+                  type: string
+                  enum: [baixa, media, alta, urgente]
+                  example: alta
+      responses:
+        '201':
+          description: Demanda Criada com sucesso.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          demanda:
+                            $ref: '#/components/schemas/DemandaResponse'
+                      message:
+                        example: "Demanda criada com sucesso."
+                      status_code:
+                        example: 201
+        '404':
+          description: Usuário vinculador não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Usuário não encontrado"
+                  status_code: 404
+        '422':
+          description: Erro de validação dos dados da demanda (ex. título já existe).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+                example:
+                  data:
+                    errors: {"titulo": ["Já existe uma demanda com este título."]}
+                  message: "Dados inválidos."
+                  status_code: 422
+
+  /api/demandas/{id}:
+    get:
+      summary: Detalhes da Demanda
+      tags:
+        - Demandas
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes da demanda retornados.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          demanda:
+                            $ref: '#/components/schemas/DemandaResponse'
+                      status_code:
+                        example: 200
+        '403':
+          description: Sem permissão para visualizar (Ex. Demanda de outro cidadão).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Acesso negado: você não tem permissão para visualizar esta demanda."
+                  status_code: 403
+        '404':
+          description: Demanda ou usuário não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Demanda não encontrada."
+                  status_code: 404
+
+    patch:
+      summary: Atualizar Demanda
+      description: Cidadão edita as próprias (se abertas). Gestor edita status/prioridade de qualquer uma.
+      tags:
+        - Demandas
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [PENDING, IN_PROGRESS, RESOLVED, REJECTED]
+                prioridade:
+                  type: string
+                  enum: [baixa, media, alta, urgente]
+      responses:
+        '200':
+          description: Demanda atualizada com sucesso.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          demanda:
+                            $ref: '#/components/schemas/DemandaResponse'
+                      message:
+                        example: "Demanda atualizada com sucesso."
+                      status_code:
+                        example: 200
+        '403':
+          description: Tentativa de atualizar demanda que não pertence ao cidadão ou que já está em andamento.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Não é possível cidadão atualizar demanda"
+                  status_code: 403
+        '404':
+          description: Demanda não encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Demanda não encontrada."
+                  status_code: 404
+        '422':
+          description: Erro de validação nos campos enviados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+                example:
+                  data:
+                    errors: {"status": ["Must be one of: PENDING, IN_PROGRESS..."]}
+                  message: "Dados inválidos."
+                  status_code: 422
+
+    delete:
+      summary: Deletar Demanda
+      tags:
+        - Demandas
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Demanda removida com sucesso.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: "null"
+                      message:
+                        example: "Demanda removida com sucesso."
+                      status_code:
+                        example: 200
+        '403':
+          description: Cidadão tentando deletar demanda de outro ou gestor deletando demanda concluída.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Acesso negado: Cidadãos só podem deletar suas próprias demandas."
+                  status_code: 403
+        '404':
+          description: Demanda não encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                example:
+                  data: null
+                  message: "Demanda não encontrada."
+                  status_code: 404
