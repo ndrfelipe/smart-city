@@ -22,6 +22,7 @@ def create_app():
 
     print(f"Configurando credenciais do banco de dados.")
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     print(f"Configurando secret key.")
