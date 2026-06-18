@@ -43,7 +43,7 @@ export default function Cadastro() {
     try {
       setLoading(true);
       const username = `${nome} ${sobrenome}`.trim();
-      await api.register(username, email, senha);
+      await api.auth.register(username, email, senha);
       router.push('/login');
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };

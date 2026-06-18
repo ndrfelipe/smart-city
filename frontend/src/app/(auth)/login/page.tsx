@@ -31,10 +31,17 @@ export default function Login() {
     setError('');
 
     try {
-      const data = await api.login(email, password);
+      const data = await api.auth.login(email, password);
       if (data && data.access_token && data.user) {
         setAuth(data.user, data.access_token);
-        router.push('/dashboard');
+        
+        // Redireciona conforme a role
+        const role = data.user.role;
+        if (role === 'gestor' || role === 'servidor') {
+          router.push('/dashboard');
+        } else {
+          router.push('/demandas');
+        }
       } else {
         setError('Email ou senha inválidos');
       }
@@ -104,9 +111,6 @@ export default function Login() {
               </Button>
             </VStack>
           </form>
-          <Text fontSize="sm" color="gray.500" textAlign="center" w="full">
-            Usuários de teste: joao@email.com ou maria@email.com (senha: 123456)
-          </Text>
         </VStack>
       </Box>
     </Container>

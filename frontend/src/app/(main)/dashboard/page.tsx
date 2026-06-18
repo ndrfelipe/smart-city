@@ -21,6 +21,7 @@ import { Demand } from "@/types/Demand";
 import { DemandStatus } from "@/types/Status";
 import { AppCard } from "@/components/ui/AppCard";
 
+
 // --- SUB-COMPONENTES DE UI ---
 
 interface StatCardProps {
@@ -183,7 +184,7 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    api.getDemandas().then((data) => {
+    api.demandas.getAll().then((data) => {
       setDemandas(data);
       setLoading(false);
     });
@@ -281,6 +282,7 @@ export default function DashboardPage() {
   }
 
   return (
+    
     <Box py={5} px={6}>
       {/* HEADER LOCAL INTERNO (OPCIONAL) */}
       <Box className="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-gray-100 px-8 md:px-20 py-4">

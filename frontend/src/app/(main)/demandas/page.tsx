@@ -16,6 +16,7 @@ import { useDemandStore } from '@/store/demandStore';
 import { Demand } from '@/types/Demand';
 import { DemandStatus } from '@/types/Status';
 import { DemandCategory } from '@/types/Category';
+import { useRole } from '@/hooks/useRole';
 
 
 const STATUS_OPTIONS: DemandStatus[] = ['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'];
@@ -47,6 +48,7 @@ export default function Demandas() {
   const { demandas, isLoading, error, fetchDemandas, updateStatusDemanda } = useDemandStore();
   const [pendingStatusById, setPendingStatusById] = useState<Record<string, DemandStatus>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { isStaff } = useRole();
 
   useEffect(() => {
     fetchDemandas();
@@ -99,34 +101,40 @@ export default function Demandas() {
                     </Box>
 
                     <Stack gap={2} minW="230px">
+                      {/* Badge visível para todos */}
                       <Badge colorPalette={STATUS_COLOR[demanda.status]} alignSelf="flex-start">
                         {STATUS_LABELS[demanda.status]}
                       </Badge>
 
-                      <NativeSelect.Root size="sm" disabled={isUpdatingCurrent}>
-                        <NativeSelect.Field
-                          value={selectedStatus}
-                          onChange={(e) => handleSelectStatus(demanda.id, e.target.value as DemandStatus)}
-                        >
-                          {STATUS_OPTIONS.map((status) => (
-                            <option key={status} value={status}>
-                              {STATUS_LABELS[status]}
-                            </option>
-                          ))}
-                        </NativeSelect.Field>
-                        <NativeSelect.Indicator />
-                      </NativeSelect.Root>
+                      {/* Select e botão só para staff */}
+                      {isStaff && (
+                        <>
+                          <NativeSelect.Root size="sm" disabled={isUpdatingCurrent}>
+                            <NativeSelect.Field
+                              value={selectedStatus}
+                              onChange={(e) => handleSelectStatus(demanda.id, e.target.value as DemandStatus)}
+                            >
+                              {STATUS_OPTIONS.map((status) => (
+                                <option key={status} value={status}>
+                                  {STATUS_LABELS[status]}
+                                </option>
+                              ))}
+                            </NativeSelect.Field>
+                            <NativeSelect.Indicator />
+                          </NativeSelect.Root>
 
-                      <Button
-                        size="sm"
-                        colorPalette="blue"
-                        onClick={() => handleUpdateStatus(demanda)}
-                        disabled={!hasStatusChanged || isUpdatingCurrent}
-                        loading={isUpdatingCurrent}
-                        loadingText="Atualizando"
-                      >
-                        Atualizar status
-                      </Button>
+                          <Button
+                            size="sm"
+                            colorPalette="blue"
+                            onClick={() => handleUpdateStatus(demanda)}
+                            disabled={!hasStatusChanged || isUpdatingCurrent}
+                            loading={isUpdatingCurrent}
+                            loadingText="Atualizando"
+                          >
+                            Atualizar status
+                          </Button>
+                        </>
+                      )}
                     </Stack>
                   </Flex>
                 </Box>

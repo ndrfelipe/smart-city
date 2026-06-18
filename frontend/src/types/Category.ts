@@ -1,7 +1,8 @@
-export type DemandCategory = 
-  | 'ROAD_MAINTENANCE'    // Manutenção de vias
-  | 'PUBLIC_LIGHTING'     // Iluminação pública
-  | 'GARBAGE_COLLECTION'  // Coleta de lixo
-  | 'SANITATION'          // Saneamento
-  | 'INSPECTION'          // Fiscalização
-  | 'OTHER';              // Outros
+export enum DemandCategory {
+  PUBLIC_LIGHTING     = 'PUBLIC_LIGHTING',
+  ROAD_MAINTENANCE    = 'ROAD_MAINTENANCE',
+  GARBAGE_COLLECTION  = 'GARBAGE_COLLECTION',
+  SANITATION          = 'SANITATION',
+  INSPECTION          = 'INSPECTION',
+  OTHER               = 'OTHER',
+}

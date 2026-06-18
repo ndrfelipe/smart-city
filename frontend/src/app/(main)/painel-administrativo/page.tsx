@@ -13,6 +13,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { api } from '@/services/api';
+import { RoleGuard } from '@/components/RoleGuard';
 
 import { Demand } from '@/types/Demand';
 import { DemandStatus } from '@/types/Status';
@@ -61,7 +62,7 @@ export default function PainelAdministrativoPage() {
     setError('');
 
     try {
-      const data = await api.getDemandas();
+      const data = await api.demandas.getAll();
       setDemandas(data);
     } catch (err) {
       console.error(err);
@@ -79,7 +80,7 @@ export default function PainelAdministrativoPage() {
 
     setUpdatingId(demanda.id);
     try {
-      const updated = await api.updateStatus(demanda.id, nextStatus);
+      const updated = await api.demandas.updateStatus(demanda.id, nextStatus);
       setDemandas((current) => current.map((item) => (item.id === updated.id ? updated : item)));
     } catch (err) {
       console.error(err);
@@ -136,6 +137,7 @@ export default function PainelAdministrativoPage() {
   );
 
   return (
+    <RoleGuard allowedRoles={['gestor', 'servidor']}>
     <Box py={8} px={[4, 10, 20]} maxW="1600px" mx="auto">
       <Box mb={6}>
         <Heading size="lg" color="blue.600">
@@ -361,5 +363,6 @@ export default function PainelAdministrativoPage() {
         )}
       </Box>
     </Box>
+    </RoleGuard>
   );
 }

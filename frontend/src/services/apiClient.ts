@@ -1,7 +1,8 @@
 import axios from 'axios';
+const url = 'https://smart-city-0r5m.onrender.com/'
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+  baseURL: url || 'http://localhost:5000',
   headers: {
     'Content-Type': 'application/json',
   },

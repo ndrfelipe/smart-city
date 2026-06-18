@@ -1,11 +1,14 @@
 import { Provider } from "@/components/ui/provider";
+import {
+  Box,
+} from '@chakra-ui/react';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <Provider>
-      <div className="min-h-screen bg-gray-100">
+      <Box minH="100vh" bg="gray.100">
         {children}
-      </div>
+      </Box>
     </Provider>
   );
 }

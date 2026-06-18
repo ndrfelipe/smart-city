@@ -16,20 +16,16 @@ interface DemandState {
   updateStatusDemanda: (id: string, newStatus: DemandStatus) => Promise<void>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const useDemandStore = create<DemandState>((set, get) => ({
   demandas: [],
   isLoading: false,
   error: null,
 
-  // =====================================
-  // ACTION: BUSCAR DEMANDAS (Usa a api.getDemandas)
-  // =====================================
   fetchDemandas: async () => {
     set({ isLoading: true, error: null });
     try {
       // Chama a SUA Fake API
-      const dados = await api.getDemandas();
+      const dados = await api.demandas.getAll();
       
       set({ demandas: dados, isLoading: false });
     } catch (err) {
@@ -38,16 +34,11 @@ export const useDemandStore = create<DemandState>((set, get) => ({
     }
   },
 
-  // =====================================
-  // ACTION: ADICIONAR DEMANDA (Usa a api.addDemanda)
-  // =====================================
   addDemanda: async (dados) => {
     set({ isLoading: true, error: null });
     try {
-      // Chama a Fake API para criar
-      const novaDemandaCriada = await api.addDemanda(dados);
+      const novaDemandaCriada = await api.demandas.create(dados);
 
-      // Pega as demandas atuais e adiciona a nova no começo
       set((state) => ({
         demandas: [novaDemandaCriada, ...state.demandas],
         isLoading: false
@@ -58,16 +49,11 @@ export const useDemandStore = create<DemandState>((set, get) => ({
     }
   },
 
-  // =====================================
-  // ACTION: ATUALIZAR STATUS (Usa a api.updateStatus)
-  // =====================================
   updateStatusDemanda: async (id, newStatus) => {
     set({ isLoading: true, error: null });
     try {
-      // Chama a Fake API para atualizar o status
-      const demandaAtualizada = await api.updateStatus(id, newStatus);
+      const demandaAtualizada = await api.demandas.updateStatus(id, newStatus);
 
-      // Atualiza a lista na tela
       set((state) => ({
         demandas: state.demandas.map((demanda) =>
           demanda.id === id ? demandaAtualizada : demanda
