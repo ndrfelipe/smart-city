@@ -100,15 +100,7 @@ Por favor, acessar a sessão 8 (Estrutura geral da API).
 
 ## 5 Localização da Documentação
 
-O contrato completo da API está definido em formato OpenAPI 3.0 e versionado diretamente no repositório:
-
-| Item | Detalhe |
-|------|---------|
-| **Arquivo** | `backend/swagger.yaml` |
-| **Formato** | OpenAPI 3.0 |
-| **Como visualizar** | Importar no [Swagger Editor](https://editor.swagger.io) ou no Insomnia/Postman |
-
-O arquivo descreve todos os endpoints, schemas de request/response, códigos de erro e o esquema de autenticação Bearer JWT. Para testá-la localmente, basta subir o backend e importar o `swagger.yaml` em qualquer cliente REST.
+A documentação completa da API pode ser encontrada no link: https://documenter.getpostman.com/view/47073825/2sBXwvHTeT
 
 ---
 
