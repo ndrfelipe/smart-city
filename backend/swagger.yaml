@@ -6,7 +6,7 @@ info:
 servers:
   - url: http://localhost:5000
     description: Servidor Local
-  - url: https://seu-app.onrender.com
+  - url: https://smart-city-0r5m.onrender.com
     description: Servidor de Produção (Render)
 
 components:
