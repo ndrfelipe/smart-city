@@ -19,12 +19,12 @@ import { CreateDemandDTO } from '@/types/Demand';
 import { DemandCategory } from '@/types/Category';
 
 const CATEGORIAS: { value: DemandCategory; label: string }[] = [
-  { value: 'PUBLIC_LIGHTING', label: 'Iluminação Pública' },
-  { value: 'ROAD_MAINTENANCE', label: 'Manutenção de Rua' },
-  { value: 'GARBAGE_COLLECTION', label: 'Coleta de Lixo' },
-  { value: 'SANITATION', label: 'Saneamento' },
-  { value: 'INSPECTION', label: 'Fiscalização' },
-  { value: 'OTHER', label: 'Outros' },
+  { value: DemandCategory.PUBLIC_LIGHTING,    label: 'Iluminação Pública' },
+  { value: DemandCategory.ROAD_MAINTENANCE,   label: 'Manutenção de Rua' },
+  { value: DemandCategory.GARBAGE_COLLECTION, label: 'Coleta de Lixo' },
+  { value: DemandCategory.SANITATION,         label: 'Saneamento' },
+  { value: DemandCategory.INSPECTION,         label: 'Fiscalização' },
+  { value: DemandCategory.OTHER,              label: 'Outros' },
 ];
 
 const LOCALIZACOES_MOCK = [
