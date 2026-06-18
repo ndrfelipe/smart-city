@@ -10,12 +10,19 @@ import { api } from '@/services/api';
 
 // Cada link pode ter um array de roles permitidas.
 // Se 'allowedRoles' estiver ausente, o link é visível para todos.
-const navLinks = [
+type NavLink = {
+  href: string;
+  label: string;
+  shortLabel: string;
+  allowedRoles?: string[];
+};
+
+const navLinks: NavLink[] = [
   { href: '/dashboard',             label: 'Dashboard',            shortLabel: 'Início', },
   { href: '/demandas/nova',         label: 'Nova Demanda',         shortLabel: 'Nova' },
   { href: '/demandas',              label: 'Ver Demandas',         shortLabel: 'Demandas' },
   { href: '/painel-administrativo', label: 'Painel Administrativo', shortLabel: 'Painel',   allowedRoles: ['gestor', 'servidor'] },
-] as const;
+];
 
 export function Sidebar() {
   const pathname   = usePathname();
