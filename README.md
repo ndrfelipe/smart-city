@@ -21,6 +21,9 @@ O projeto adota o modelo arquitetural **Cliente-Servidor (Web Desacoplada)**. A 
 * **Fluxo:** [ FRONTEND (Next.js) ] --( Requisições HTTP/REST / JSON )--> [ BACKEND (Python API) ]
 * **Simulação:** [ SCRIPT DE TESTE (Python) ] --( Multi-threads / HTTP POST )--> [ BACKEND (Python API) ]
 
+* <img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/e6e37544-b47f-4504-8212-8b6415a65023" />
+
+
 ---
 
 ## 2. Concorrência e Paralelismo
