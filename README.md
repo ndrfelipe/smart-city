@@ -4,30 +4,29 @@ Bem-vindos ao repositório da nossa Plataforma de Gestão de Demandas Urbanas! E
 
 O projeto é composto por um front-end em Next.js e um back-end em Flask (Python).
 
-## Tecnologias Utilizadas
+## 1 Tecnologias Utilizadas
 
-### Front-end
+### 1.1 Front-end
 * **Framework:** Next.js (App Router) com TypeScript
 * **Estilização:** Tailwind CSS + Chakra UI
 * **Gerenciamento de Estado:** Zustand
 * **Dados:** Fake API (Mock) / Integração com Back-end
 
-### Back-end
+### 1.2 Back-end
 * **Framework:** Flask (Python)
 * **Autenticação:** JWT (JSON Web Tokens)
-* **Banco de Dados:** PostgreSQL (Recomendado via `DATABASE_URL`)
-* **Cache/Mensageria:** Redis
+* **Banco de Dados:** PostgreSQL
 
-## Como rodar o projeto localmente
+## 2 Como rodar o projeto localmente
 
 Siga os passos abaixo para configurar o ambiente de desenvolvimento na sua máquina.
 
-### Pré-requisitos
+### 2.1 Pré-requisitos
 * Node.js (v24.14.0)
 * Python (v3.10+)
 * Git instalado
 
-### Configuração do Back-end
+### 2.2 Configuração do Back-end
 
 1. Acesse a pasta do back-end:
    ```bash
@@ -57,7 +56,7 @@ Siga os passos abaixo para configurar o ambiente de desenvolvimento na sua máqu
    python app.py
    ```
 
-### Configuração do Front-end
+### 2.3 Configuração do Front-end
 
 1. Acesse a pasta do front-end:
    ```bash
@@ -73,7 +72,7 @@ Siga os passos abaixo para configurar o ambiente de desenvolvimento na sua máqu
    ```
 4. Abra http://localhost:3000 no seu navegador para ver a aplicação rodando.
 
-## Variáveis de Ambiente (Back-end)
+## 3 Variáveis de Ambiente (Back-end)
 
 As seguintes variáveis devem ser configuradas no arquivo `backend/.env`:
 
@@ -81,10 +80,9 @@ As seguintes variáveis devem ser configuradas no arquivo `backend/.env`:
 | :--- | :--- | :--- |
 | `DATABASE_URL` | URL de conexão com o banco de dados PostgreSQL. | `postgresql://user:pass@localhost:5432/db` |
 | `SECRET_KEY` | Chave secreta usada pelo Flask para assinar sessões e outros dados. | `sua_chave_secreta_aqui` |
-| `REDIS_URL` | URL de conexão com a instância do Redis. | `redis://localhost:6379/0` |
 | `JWT_SECRET` | Chave secreta específica para a geração e validação de tokens JWT. | `sua_chave_jwt_secreta_aqui` |
 
-## Estrutura do Projeto
+## 4 Estrutura do Projeto
 
 Nossa organização de pastas é baseada em responsabilidades para evitar conflitos:
 
@@ -96,7 +94,99 @@ Nossa organização de pastas é baseada em responsabilidades para evitar confli
 - /src/types: Definições de interfaces e tipos do TypeScript.
 
 ### Back-end (/backend)
-- app.py: Ponto de entrada da aplicação Flask.
-- /routes: Definição das rotas e endpoints da API.
-- /middlewares: Interceptadores para tratamento de erros e autenticação.
-- /utils: Funções auxiliares e utilitários.
+Por favor, acessar a sessão 8 (Estrutura geral da API).
+
+---
+
+## 5 Localização da Documentação
+
+O contrato completo da API está definido em formato OpenAPI 3.0 e versionado diretamente no repositório:
+
+| Item | Detalhe |
+|------|---------|
+| **Arquivo** | `backend/swagger.yaml` |
+| **Formato** | OpenAPI 3.0 |
+| **Como visualizar** | Importar no [Swagger Editor](https://editor.swagger.io) ou no Insomnia/Postman |
+
+O arquivo descreve todos os endpoints, schemas de request/response, códigos de erro e o esquema de autenticação Bearer JWT. Para testá-la localmente, basta subir o backend e importar o `swagger.yaml` em qualquer cliente REST.
+
+---
+
+## 6 Principais Endpoints Implementados
+
+### 6.1 Autenticação (`/auth`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/auth/register` | Cria uma nova conta de usuário |
+| `POST` | `/auth/login` | Autentica e retorna `access_token` + `refresh_token` |
+| `GET` | `/auth/me` | Retorna os dados do usuário logado |
+| `PATCH` | `/auth/update` | Atualiza perfil ou promove cargo (Admin/Gestor) |
+| `POST` | `/auth/refresh` | Renova o `access_token` usando o `refresh_token` |
+| `GET` | `/auth/logout` | Invalida o token e encerra a sessão |
+
+### 6.2 Gerenciamento de Demandas (`/api/demandas`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/api/demandas` | Lista todas as demandas (com filtros e paginação) |
+| `POST` | `/api/demandas` | Cidadão cria uma nova solicitação urbana |
+| `GET` | `/api/demandas/{id}` | Retorna os detalhes de uma demanda específica |
+| `PATCH` | `/api/demandas/{id}` | Atualiza status ou prioridade da demanda |
+| `DELETE` | `/api/demandas/{id}` | Remove uma demanda (respeitando regras de role) |
+
+---
+
+
+## 7 Métodos HTTP Utilizados
+
+A API segue os princípios REST, utilizando os métodos HTTP de acordo com a semântica de cada operação:
+
+| Método | Uso | Exemplo na API |
+|--------|-----|----------------|
+| `GET` | Leitura de dados | Listar demandas, obter perfil, logout |
+| `POST` | Criação de recursos | Registrar usuário, fazer login, criar demanda |
+| `PATCH` | Atualização parcial | Atualizar perfil/role, atualizar status de demanda |
+| `DELETE` | Remoção de recursos | Deletar demanda urbana |
+
+---
+
+## 8 Estrutura Geral da API
+
+A API segue uma arquitetura em camadas inspirada no padrão MVC, separando responsabilidades entre roteamento, controle, regras de negócio e acesso a dados:
+
+| Camada | Pasta | Responsabilidade |
+|--------|-------|-----------------|
+| Roteamento | `/routes` | Recebe requisições HTTP, mapeia URLs para controllers e aplica middlewares |
+| Segurança | `/middlewares` | Valida JWT, extrai usuário autenticado e injeta em `request.current_user` |
+| Controle | `/controllers` | Orquestra o fluxo: extrai dados da requisição, aciona schemas e services, devolve resposta padronizada |
+| Negócio | `/services` | Concentra todas as regras de negócio (ex.: cidadão só edita a própria demanda, gestor não fecha demanda já resolvida) |
+| Validação | `/schemas` | Deserialização (valida input) e serialização (formata output, ocultando campos sensíveis como `password_hash`) via Marshmallow |
+| Dados | `/models` | Define tabelas (`users`, `demandas`) e relacionamentos via SQLAlchemy. Contém queries de acesso ao banco |
+| Utilitários | `/utils` & `/config` | Funções reutilizáveis (formatação de respostas HTTP padronizadas) e configurações globais (Flask, banco, CORS, registro de rotas) |
+
+### 8.1 Padrão de Resposta
+
+Todas as respostas da API seguem o mesmo contrato JSON:
+
+| Campo | Descrição |
+|-------|-----------|
+| `data` | Payload da resposta (objeto, lista ou `null` em caso de erro) |
+| `message` | Mensagem descritiva do resultado (ex.: `"Demanda criada com sucesso."`) |
+| `status_code` | Código HTTP espelhado no corpo (200, 201, 400, 401, 403, 404, 422, 500) |
+
+```json
+{
+  "data": { ... },
+  "message": "Operação realizada com sucesso",
+  "status_code": 200
+}
+```
+
+### 8.2 Regras de Autorização por Role
+
+- **CITIZEN (Cidadão):** cria demandas, edita e exclui apenas as próprias (enquanto pendentes), visualiza o próprio histórico.
+- **MANAGER (Gestor):** atualiza status e prioridade de qualquer demanda, não pode excluir demandas já concluídas.
+- **ADMIN:** pode promover usuários para Gestor via `PATCH /auth/update`.
+
+---
