@@ -84,7 +84,13 @@ class AuthController:
                 message="Erro de validação",
                 status_code=400
             )
+        except ValueError as e:
+            return standard_response(
+                message=str(e),
+                status_code=401
+            )
         except Exception as e:
+            print(f"[LOGIN ERROR] {type(e).__name__}: {e}", flush=True)
             return standard_response(
                 message="Erro interno ao fazer login",
                 status_code=500
