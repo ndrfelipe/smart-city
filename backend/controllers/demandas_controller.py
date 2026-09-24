@@ -86,8 +86,8 @@ class DemandaController:
         except LookupError as e:
             return standard_response(message=str(e), status_code=404)
         except PermissionError as e:
-            # Aqui retornamos a sua mensagem personalizada quando for um cidadão tentando o que não deve
-            return standard_response(message="Não é possível cidadão atualizar demanda", status_code=403)
+            # Mensagem vem do service (ex.: "Apenas demandas pendentes podem ser editadas.").
+            return standard_response(message=str(e), status_code=403)
         except ValueError as e:
             return standard_response(message='Dados inválidos.', data={'errors': e.args[0]}, status_code=422)
     

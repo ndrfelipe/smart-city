@@ -5,6 +5,24 @@ from models.demanda import Demanda
 from models.user import User
 from schemas.demandas_schema import DemandaCreateSchema, DemandaUpdateSchema, DemandaQuerySchema
  
+# O status "pendente" existe em dois formatos no banco: o legado ('aberto', gravado na
+# criação) e o novo ('PENDING', gravado quando um gestor atualiza o status).
+STATUS_PENDENTES = ('aberto', 'PENDING')
+
+
+def _is_pendente(demanda: Demanda) -> bool:
+    return demanda.status in STATUS_PENDENTES
+
+
+def _garantir_pode_editar(demanda: Demanda, user: User) -> None:
+    """Cidadão só edita (dados ou foto) as próprias demandas, e apenas enquanto pendentes."""
+    if user.role == 'gestor':
+        return
+    if demanda.usuario_id != user.id:
+        raise PermissionError('Acesso negado.')
+    if not _is_pendente(demanda):
+        raise PermissionError('Apenas demandas pendentes podem ser editadas.')
+ 
  
 def _get_user_by_email(email: str) -> User:
     """
@@ -110,8 +128,7 @@ class DemandaService:
  
         user = _get_user_by_email(email)
  
-        if user.role != 'gestor' and demanda.usuario_id != user.id:
-            raise PermissionError('Acesso negado.')
+        _garantir_pode_editar(demanda, user)
  
         if user.role != 'gestor' and 'status' in data:
             raise PermissionError('Apenas gestores podem alterar o status de uma demanda.')
@@ -156,7 +173,7 @@ class DemandaService:
         if user.role != 'gestor' and demanda.usuario_id != user.id:
             raise PermissionError('Acesso negado.')
  
-        if user.role != 'gestor' and demanda.status != 'aberto':
+        if user.role != 'gestor' and not _is_pendente(demanda):
             raise PermissionError('Apenas demandas com status "aberto" podem ser removidas.')
  
         db.session.delete(demanda)
