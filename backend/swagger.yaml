@@ -66,6 +66,11 @@ components:
         updatedAt:
           type: string
           format: date-time
+        photoUrl:
+          type: string
+          nullable: true
+          description: URL pública da foto (null quando a demanda não tem foto).
+          example: http://192.168.0.10:5000/api/demandas/fotos/3f2a9c1e0b7d4e6fa1c2b3d4e5f60718.jpg
 
     StandardResponse:
       type: object
@@ -787,3 +792,80 @@ paths:
                   data: null
                   message: "Demanda não encontrada."
                   status_code: 404
+
+  /api/demandas/{id}/foto:
+    put:
+      summary: Enviar ou substituir a foto da demanda
+      description: >
+        Recebe a imagem em multipart/form-data no campo "foto" (JPG, PNG, WEBP ou HEIC, até 8 MB).
+        O tipo é validado pelo conteúdo do arquivo. Mesmas regras de permissão da edição:
+        cidadão só envia foto das próprias demandas enquanto pendentes; gestor em qualquer uma.
+        Substituir a foto apaga o arquivo anterior.
+      tags:
+        - Demandas
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - foto
+              properties:
+                foto:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Foto salva; retorna a demanda com photoUrl preenchido.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          demanda:
+                            $ref: '#/components/schemas/DemandaResponse'
+        '403':
+          description: Demanda de outro cidadão ou que já saiu de pendente.
+        '404':
+          description: Demanda não encontrada.
+        '413':
+          description: Arquivo maior que o limite (data.errors.foto).
+        '422':
+          description: Arquivo ausente ou não é uma imagem suportada (data.errors.foto).
+
+  /api/demandas/fotos/{filename}:
+    get:
+      summary: Obter a imagem de uma demanda
+      description: Público (o nome do arquivo é um identificador aleatório); use o photoUrl da demanda.
+      tags:
+        - Demandas
+      parameters:
+        - in: path
+          name: filename
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Arquivo da imagem.
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Foto não encontrada.

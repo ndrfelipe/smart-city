@@ -32,6 +32,7 @@ from routes.demandas_routes import demandas_bp
 from middlewares.error_handler import ErrorHandler
 from .extensions import db, bcrypt
 from utils.random_string import create_random_string
+from utils.schema_migrations import apply_pending_columns
 from dotenv import load_dotenv
 import os
 
@@ -50,6 +51,11 @@ def create_app():
 
     print("Configurando secret key.")
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', create_random_string())
+
+    # Fotos das demandas: pasta local (fora do git) e limite de 8 MB por requisição.
+    default_upload_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'uploads', 'demandas'))
+    app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER', default_upload_folder)
+    app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_UPLOAD_BYTES', 8 * 1024 * 1024))
 
     print("Inicializando extensões")
     db.init_app(app)
@@ -96,5 +102,6 @@ def create_app():
     # Criar tabelas se não existirem
     with app.app_context():
         db.create_all()
+        apply_pending_columns(db)
 
     return app

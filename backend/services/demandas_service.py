@@ -4,6 +4,7 @@ from config.extensions import db
 from models.demanda import Demanda
 from models.user import User
 from schemas.demandas_schema import DemandaCreateSchema, DemandaUpdateSchema, DemandaQuerySchema
+from utils.uploads import ALLOWED_FORMATS_LABEL, delete_image, detect_image_extension, save_image
  
 # O status "pendente" existe em dois formatos no banco: o legado ('aberto', gravado na
 # criação) e o novo ('PENDING', gravado quando um gestor atualiza o status).
@@ -176,5 +177,34 @@ class DemandaService:
         if user.role != 'gestor' and not _is_pendente(demanda):
             raise PermissionError('Apenas demandas com status "aberto" podem ser removidas.')
  
+        foto = demanda.foto
         db.session.delete(demanda)
         db.session.commit()
+        delete_image(foto)
+ 
+    @staticmethod
+    def salvar_foto(demanda_id: int, arquivo, email: str) -> Demanda:
+        """
+        Anexa (ou substitui) a foto de uma demanda. Mesmas regras de permissão da edição.
+        O tipo é validado pelo conteúdo do arquivo, não pela extensão enviada.
+        """
+        demanda = Demanda.query.get(demanda_id)
+        if not demanda:
+            raise LookupError('Demanda não encontrada.')
+
+        user = _get_user_by_email(email)
+        _garantir_pode_editar(demanda, user)
+
+        if arquivo is None or not arquivo.filename:
+            raise ValueError({'foto': ['Envie uma imagem no campo "foto".']})
+
+        extensao = detect_image_extension(arquivo)
+        if extensao is None:
+            raise ValueError({'foto': [f'Formato não suportado. Envie uma imagem {ALLOWED_FORMATS_LABEL}.']})
+
+        foto_antiga = demanda.foto
+        demanda.foto = save_image(arquivo, extensao)
+        demanda.updated_at = datetime.datetime.utcnow()
+        db.session.commit()
+        delete_image(foto_antiga)
+        return demanda

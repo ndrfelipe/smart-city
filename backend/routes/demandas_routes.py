@@ -11,3 +11,7 @@ demandas_bp.route('/<int:demanda_id>', methods=['GET'])(required_token(DemandaCo
 demandas_bp.route('/<int:demanda_id>', methods=['PATCH'])(required_token(DemandaController.atualizar_demanda))
 demandas_bp.route('/<int:demanda_id>', methods=['DELETE'])(required_token(DemandaController.deletar_demanda))
 
+# Fotos: upload autenticado (multipart, campo "foto") e leitura pública pelo nome aleatório.
+demandas_bp.route('/<int:demanda_id>/foto', methods=['PUT'])(required_token(DemandaController.enviar_foto))
+demandas_bp.route('/fotos/<path:filename>', methods=['GET'])(DemandaController.servir_foto)
+

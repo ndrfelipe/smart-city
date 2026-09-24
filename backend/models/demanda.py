@@ -12,6 +12,8 @@ class Demanda(db.Model):
     status = db.Column(db.String(20), nullable=False, default='aberto')
     prioridade = db.Column(db.String(20), nullable=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    # Nome do arquivo da foto dentro de UPLOAD_FOLDER (a URL pública é montada no schema de resposta).
+    foto = db.Column(db.String(255), nullable=True)
     # setor_id
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     updated_at = db.Column(db.DateTime)
@@ -25,6 +27,7 @@ class Demanda(db.Model):
             'localizacao': self.localizacao,
             'status': self.status,
             'prioridade': self.prioridade,
+            'foto': self.foto,
             'created_at': self.created_at,
             'updated_at': self.updated_at if self.updated_at else None
         }

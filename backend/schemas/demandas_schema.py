@@ -1,3 +1,4 @@
+from flask import url_for
 from marshmallow import Schema, fields, validate, validates, ValidationError, EXCLUDE
 from models.demanda import Demanda
  
@@ -61,6 +62,14 @@ class DemandaResponseSchema(Schema):
     priority = fields.Str(attribute='prioridade')
     createdAt = fields.DateTime(attribute='created_at')
     updatedAt = fields.DateTime(attribute='updated_at')
+    photoUrl = fields.Method("get_photo_url")
+
+    def get_photo_url(self, obj):
+        # URL absoluta com o host da requisição: funciona tanto em localhost quanto
+        # no IP da rede local usado pelo app no celular.
+        if not obj.foto:
+            return None
+        return url_for('demandas.servir_foto', filename=obj.foto, _external=True)
 
     def get_category(self, obj):
         # Mapeamento robusto: converte tanto os novos valores quanto os antigos

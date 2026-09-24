@@ -81,6 +81,8 @@ As seguintes variáveis devem ser configuradas no arquivo `backend/.env`:
 | `DATABASE_URL` | URL de conexão com o banco de dados PostgreSQL. | `postgresql://user:pass@localhost:5432/db` |
 | `SECRET_KEY` | Chave secreta usada pelo Flask para assinar sessões e outros dados. | `sua_chave_secreta_aqui` |
 | `JWT_SECRET` | Chave secreta específica para a geração e validação de tokens JWT. | `sua_chave_jwt_secreta_aqui` |
+| `UPLOAD_FOLDER` | (Opcional) Pasta onde as fotos das demandas são salvas. Padrão: `backend/uploads/demandas` (ignorada pelo git). | `/var/data/smartcity/fotos` |
+| `MAX_UPLOAD_BYTES` | (Opcional) Tamanho máximo do upload de foto, em bytes. Padrão: 8 MB. | `8388608` |
 
 ## 4 Estrutura do Projeto
 
@@ -126,6 +128,8 @@ A documentação completa da API pode ser encontrada no link: https://documenter
 | `GET` | `/api/demandas/{id}` | Retorna os detalhes de uma demanda específica |
 | `PATCH` | `/api/demandas/{id}` | Atualiza status ou prioridade da demanda |
 | `DELETE` | `/api/demandas/{id}` | Remove uma demanda (respeitando regras de role) |
+| `PUT` | `/api/demandas/{id}/foto` | Envia/substitui a foto da demanda (`multipart/form-data`, campo `foto`) |
+| `GET` | `/api/demandas/fotos/{arquivo}` | Serve a imagem (use o `photoUrl` retornado nas demandas) |
 
 ---
 
