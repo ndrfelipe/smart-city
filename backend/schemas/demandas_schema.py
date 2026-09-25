@@ -75,6 +75,7 @@ class DemandaQuerySchema(Schema):
     status     = fields.String(validate=validate.OneOf(STATUS_VALIDOS))
     prioridade = fields.String(validate=validate.OneOf(PRIORIDADES_VALIDAS))
     categoria  = fields.String(validate=validate.OneOf(CATEGORIAS_VALIDAS))
+    q          = fields.String(validate=validate.Length(max=100))
     page       = fields.Integer(load_default=1,  validate=validate.Range(min=1))
     per_page   = fields.Integer(load_default=10, validate=validate.Range(min=1, max=100))
 

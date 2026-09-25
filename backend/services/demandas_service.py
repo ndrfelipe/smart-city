@@ -1,7 +1,7 @@
 import datetime
  
 from config.extensions import db
-from models.demanda import Demanda
+from models.demanda import Demanda, normalizar_busca
 from models.user import User
 from schemas.demandas_schema import (
     CATEGORIA_POR_VALOR_ARMAZENADO,
@@ -77,7 +77,8 @@ class DemandaService:
     def listar_demandas(query_params: dict, email: str):
         """
         Gestores veem todas as demandas; cidadãos, apenas as próprias.
-        Suporta filtros por status, prioridade e categoria, com paginação.
+        Suporta busca textual (q: título, descrição ou localização, sem diferenciar
+        maiúsculas/acentos) e filtros por status, prioridade e categoria, com paginação.
         """
         schema = DemandaQuerySchema()
         erros = schema.validate(query_params)
@@ -102,6 +103,11 @@ class DemandaService:
             query = query.filter_by(prioridade=params['prioridade'])
         if 'categoria' in params:
             query = query.filter(Demanda.categoria.in_(valores_armazenados(CATEGORIA_POR_VALOR_ARMAZENADO, params['categoria'])))
+        termo = normalizar_busca(params.get('q', '').strip())
+        if termo:
+            # '%' e '_' digitados pelo usuário são literais, não curingas do LIKE.
+            literal = termo.replace('!', '!!').replace('%', '!%').replace('_', '!_')
+            query = query.filter(Demanda.texto_busca.like(f'%{literal}%', escape='!'))
  
         query = query.order_by(Demanda.created_at.desc())
  

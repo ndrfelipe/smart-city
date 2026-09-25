@@ -1,5 +1,14 @@
 from config.extensions import db, bcrypt
+from sqlalchemy import event
 import datetime
+import unicodedata
+
+
+def normalizar_busca(*partes):
+    """Minúsculas e sem acentos: "Semáforo na Rua XV" -> "semaforo na rua xv"."""
+    texto = ' '.join(p for p in partes if p)
+    sem_acento = unicodedata.normalize('NFKD', texto).encode('ascii', 'ignore').decode('ascii')
+    return sem_acento.lower()
 
 class Demanda(db.Model):
     __tablename__ = 'demandas'
@@ -14,6 +23,9 @@ class Demanda(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     # Nome do arquivo da foto dentro de UPLOAD_FOLDER (a URL pública é montada no schema de resposta).
     foto = db.Column(db.String(255), nullable=True)
+    # Título + descrição + localização normalizados, para a busca ignorar maiúsculas e acentos
+    # em qualquer banco (SQLite/PostgreSQL). Mantido pelos eventos no fim deste arquivo.
+    texto_busca = db.Column(db.Text, nullable=True)
     # setor_id
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     updated_at = db.Column(db.DateTime)
@@ -32,3 +44,8 @@ class Demanda(db.Model):
             'updated_at': self.updated_at if self.updated_at else None
         }
 
+
+@event.listens_for(Demanda, 'before_insert')
+@event.listens_for(Demanda, 'before_update')
+def _atualizar_texto_busca(mapper, connection, demanda):
+    demanda.texto_busca = normalizar_busca(demanda.titulo, demanda.descricao, demanda.localizacao)

@@ -5,6 +5,7 @@ from sqlalchemy import inspect, text
 # Cada entrada: (tabela, coluna, definição SQL da coluna).
 _PENDING_COLUMNS = [
     ('demandas', 'foto', 'VARCHAR(255)'),
+    ('demandas', 'texto_busca', 'TEXT'),
 ]
 
 
@@ -20,3 +21,15 @@ def apply_pending_columns(db):
             if column not in columns:
                 print(f"Migrando banco: adicionando coluna {table}.{column}")
                 connection.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {definition}'))
+
+
+def backfill_texto_busca(db):
+    """Preenche o texto de busca de demandas criadas antes da coluna existir."""
+    from models.demanda import Demanda, normalizar_busca
+
+    pendentes = Demanda.query.filter(Demanda.texto_busca.is_(None)).all()
+    for demanda in pendentes:
+        demanda.texto_busca = normalizar_busca(demanda.titulo, demanda.descricao, demanda.localizacao)
+    if pendentes:
+        print(f"Migrando banco: texto de busca preenchido em {len(pendentes)} demanda(s)")
+        db.session.commit()

@@ -32,7 +32,7 @@ from routes.demandas_routes import demandas_bp
 from middlewares.error_handler import ErrorHandler
 from .extensions import db, bcrypt
 from utils.random_string import create_random_string
-from utils.schema_migrations import apply_pending_columns
+from utils.schema_migrations import apply_pending_columns, backfill_texto_busca
 from dotenv import load_dotenv
 import os
 
@@ -103,5 +103,6 @@ def create_app():
     with app.app_context():
         db.create_all()
         apply_pending_columns(db)
+        backfill_texto_busca(db)
 
     return app

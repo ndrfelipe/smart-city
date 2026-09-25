@@ -451,7 +451,15 @@ paths:
         - bearerAuth: []
       parameters:
         - in: query
+          name: q
+          description: Busca em título, descrição e localização (ignora maiúsculas e acentos).
+          schema:
+            type: string
+            maxLength: 100
+          example: semaforo
+        - in: query
           name: status
+          description: "Também encontra demandas gravadas com o valor legado (ex.: 'aberto' para PENDING)."
           schema:
             type: string
             enum: [PENDING, IN_PROGRESS, RESOLVED, REJECTED]
