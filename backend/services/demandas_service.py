@@ -3,7 +3,14 @@ import datetime
 from config.extensions import db
 from models.demanda import Demanda
 from models.user import User
-from schemas.demandas_schema import DemandaCreateSchema, DemandaUpdateSchema, DemandaQuerySchema
+from schemas.demandas_schema import (
+    CATEGORIA_POR_VALOR_ARMAZENADO,
+    STATUS_POR_VALOR_ARMAZENADO,
+    DemandaCreateSchema,
+    DemandaQuerySchema,
+    DemandaUpdateSchema,
+    valores_armazenados,
+)
 from utils.uploads import ALLOWED_FORMATS_LABEL, delete_image, detect_image_extension, save_image
  
 # O status "pendente" existe em dois formatos no banco: o legado ('aberto', gravado na
@@ -87,12 +94,14 @@ class DemandaService:
             query = query.filter_by(usuario_id=user.id)
  
         # Filtros opcionais
+        # status/categoria: o banco guarda valores legados ('aberto', 'infraestrutura'...) e novos;
+        # o filtro aceita o valor da API e casa com todos os equivalentes.
         if 'status' in params:
-            query = query.filter_by(status=params['status'])
+            query = query.filter(Demanda.status.in_(valores_armazenados(STATUS_POR_VALOR_ARMAZENADO, params['status'])))
         if 'prioridade' in params:
             query = query.filter_by(prioridade=params['prioridade'])
         if 'categoria' in params:
-            query = query.filter_by(categoria=params['categoria'])
+            query = query.filter(Demanda.categoria.in_(valores_armazenados(CATEGORIA_POR_VALOR_ARMAZENADO, params['categoria'])))
  
         query = query.order_by(Demanda.created_at.desc())
  

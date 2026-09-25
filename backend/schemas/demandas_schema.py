@@ -10,6 +10,32 @@ CATEGORIAS_VALIDAS = [
  
 STATUS_VALIDOS    = ['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED']
 PRIORIDADES_VALIDAS = ['baixa', 'media', 'alta', 'urgente']
+
+# Valores legados (em português) e novos convivem no banco; a API sempre responde com os novos.
+CATEGORIA_POR_VALOR_ARMAZENADO = {
+    'infraestrutura': 'ROAD_MAINTENANCE',
+    'saude': 'SANITATION',
+    'educacao': 'OTHER',
+    'seguranca': 'INSPECTION',
+    'meio_ambiente': 'GARBAGE_COLLECTION',
+    'transporte': 'ROAD_MAINTENANCE',
+    'outros': 'OTHER',
+    **{valor: valor for valor in CATEGORIAS_VALIDAS},
+}
+
+STATUS_POR_VALOR_ARMAZENADO = {
+    'aberto': 'PENDING',
+    'em_andamento': 'IN_PROGRESS',
+    'concluido': 'RESOLVED',
+    'cancelado': 'REJECTED',
+    **{valor: valor for valor in STATUS_VALIDOS},
+}
+
+
+def valores_armazenados(mapeamento: dict, valor_api: str) -> list:
+    """Todos os valores gravados no banco que a API apresenta como `valor_api` (para filtrar)."""
+    return [armazenado for armazenado, api in mapeamento.items() if api == valor_api]
+
  
  
 class DemandaCreateSchema(Schema):
@@ -72,36 +98,7 @@ class DemandaResponseSchema(Schema):
         return url_for('demandas.servir_foto', filename=obj.foto, _external=True)
 
     def get_category(self, obj):
-        # Mapeamento robusto: converte tanto os novos valores quanto os antigos
-        mapping = {
-            'infraestrutura': 'ROAD_MAINTENANCE',
-            'saude': 'SANITATION',
-            'educacao': 'OTHER',
-            'seguranca': 'INSPECTION',
-            'meio_ambiente': 'GARBAGE_COLLECTION',
-            'transporte': 'ROAD_MAINTENANCE',
-            'outros': 'OTHER',
-            # Novos valores (caso já estejam em inglês no DB)
-            'ROAD_MAINTENANCE': 'ROAD_MAINTENANCE',
-            'PUBLIC_LIGHTING': 'PUBLIC_LIGHTING',
-            'GARBAGE_COLLECTION': 'GARBAGE_COLLECTION',
-            'SANITATION': 'SANITATION',
-            'INSPECTION': 'INSPECTION',
-            'OTHER': 'OTHER'
-        }
-        return mapping.get(obj.categoria, 'OTHER')
+        return CATEGORIA_POR_VALOR_ARMAZENADO.get(obj.categoria, 'OTHER')
 
     def get_status(self, obj):
-        # Mapeamento robusto: converte tanto os novos valores quanto os antigos
-        mapping = {
-            'aberto': 'PENDING',
-            'em_andamento': 'IN_PROGRESS',
-            'concluido': 'RESOLVED',
-            'cancelado': 'REJECTED',
-            # Novos valores
-            'PENDING': 'PENDING',
-            'IN_PROGRESS': 'IN_PROGRESS',
-            'RESOLVED': 'RESOLVED',
-            'REJECTED': 'REJECTED'
-        }
-        return mapping.get(obj.status, 'PENDING')
+        return STATUS_POR_VALOR_ARMAZENADO.get(obj.status, 'PENDING')
