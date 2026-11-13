@@ -115,7 +115,7 @@ A documentação completa da API pode ser encontrada no link: https://documenter
 | `POST` | `/auth/register` | Cria uma nova conta de usuário |
 | `POST` | `/auth/login` | Autentica e retorna `access_token` + `refresh_token` |
 | `GET` | `/auth/me` | Retorna os dados do usuário logado |
-| `PATCH` | `/auth/update` | Atualiza perfil ou promove cargo (Admin/Gestor) |
+| `PATCH` | `/auth/update` | Atualiza nome (`username`) e/ou senha do próprio usuário (o perfil de acesso não pode ser alterado por aqui) |
 | `POST` | `/auth/refresh` | Renova o `access_token` usando o `refresh_token` |
 | `GET` | `/auth/logout` | Invalida o token e encerra a sessão |
 
@@ -183,6 +183,13 @@ Todas as respostas da API seguem o mesmo contrato JSON:
 
 - **CITIZEN (Cidadão):** cria demandas, edita e exclui apenas as próprias (enquanto pendentes), visualiza o próprio histórico.
 - **MANAGER (Gestor):** atualiza status e prioridade de qualquer demanda, não pode excluir demandas já concluídas.
-- **ADMIN:** pode promover usuários para Gestor via `PATCH /auth/update`.
+- O cadastro público (`POST /auth/register`) sempre cria **Cidadãos**. Contas de **Gestor Público** são criadas (ou promovidas) por quem administra o servidor:
+  ```bash
+  cd backend
+  flask --app config.config:create_app create-gestor --email gestor@prefeitura.gov.br --nome "Gestor" --senha "senha123"
+  # Promover uma conta existente / voltar para cidadão:
+  flask --app config.config:create_app create-gestor --email fulano@email.com
+  flask --app config.config:create_app set-role fulano@email.com cidadao
+  ```
 
 ---

@@ -1,7 +1,7 @@
 from flask import request
 from services.auth_service import AuthService
 from models.user import User
-from schemas.user_schema import UserRegistrationSchema, UserResponseSchema, UserLoginSchema
+from schemas.user_schema import UserRegistrationSchema, UserResponseSchema, UserLoginSchema, UserProfileUpdateSchema
 from marshmallow import ValidationError
 from utils.responses import standard_response
 from utils.get_token import get_token_by_header
@@ -12,6 +12,9 @@ class AuthController:
     registration_schema = UserRegistrationSchema()
     login_schema = UserLoginSchema()
     user_response_schema = UserResponseSchema()
+    profile_update_schema = UserProfileUpdateSchema()
+    # E-mail fica de fora: ele identifica o usuário dentro dos tokens JWT já emitidos.
+    CAMPOS_EDITAVEIS_PERFIL = ('username', 'password')
 
     @classmethod
     def register(cls):
@@ -116,12 +119,29 @@ class AuthController:
         if not user:
             return standard_response(message="Usuário não encontrado", status_code=404)
         
-        json_data = request.get_json()
+        json_data = request.get_json(silent=True)
         if not json_data:
             return standard_response(message="Nenhum dado fornecido", status_code=400)
-        
+
+        # O próprio usuário nunca altera o perfil (role): isso permitiria a um cidadão
+        # se promover a gestor. Gestores são habilitados pelo comando `create-gestor`.
+        if 'role' in json_data:
+            return standard_response(message="O perfil de acesso não pode ser alterado por esta rota.", status_code=403)
+
+        dados = {campo: json_data[campo] for campo in cls.CAMPOS_EDITAVEIS_PERFIL if campo in json_data}
+        if not dados:
+            return standard_response(
+                data={"errors": {"_schema": ["Envie ao menos um campo editável: username ou password."]}},
+                message="Erro de validação",
+                status_code=400
+            )
+        try:
+            dados = cls.profile_update_schema.load(dados)
+        except ValidationError as err:
+            return standard_response(data={"errors": err.messages}, message="Erro de validação", status_code=400)
+
         # O método update no Model já cuida de hash de senha e commit
-        if user.update(json_data):
+        if user.update(dados):
             user_data = cls.user_response_schema.dump(user)
             return standard_response(
                 data=user_data, 

@@ -17,6 +17,11 @@ class UserLoginSchema(Schema):
     password = fields.String(required=True, validate=validate.Length(min=6))
 
 
+class UserProfileUpdateSchema(Schema):
+    username = fields.String(validate=validate.Length(min=3, max=50))
+    password = fields.String(validate=validate.Length(min=6))
+
+
 class UserResponseSchema(Schema):
     id = fields.Int()
     name = fields.Str(attribute='username')
