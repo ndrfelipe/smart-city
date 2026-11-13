@@ -23,6 +23,10 @@ class Demanda(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     # Nome do arquivo da foto dentro de UPLOAD_FOLDER (a URL pública é montada no schema de resposta).
     foto = db.Column(db.String(255), nullable=True)
+    # Região da cidade (CENTRO, NORTE, SUL, LESTE, OESTE); opcional, usada em filtros e métricas.
+    regiao = db.Column(db.String(20), nullable=True)
+    # Quando a demanda foi concluída/recusada: base do tempo médio de atendimento.
+    resolvido_em = db.Column(db.DateTime, nullable=True)
     # Título + descrição + localização normalizados, para a busca ignorar maiúsculas e acentos
     # em qualquer banco (SQLite/PostgreSQL). Mantido pelos eventos no fim deste arquivo.
     texto_busca = db.Column(db.Text, nullable=True)
@@ -40,6 +44,8 @@ class Demanda(db.Model):
             'status': self.status,
             'prioridade': self.prioridade,
             'foto': self.foto,
+            'regiao': self.regiao,
+            'resolvido_em': self.resolvido_em,
             'created_at': self.created_at,
             'updated_at': self.updated_at if self.updated_at else None
         }

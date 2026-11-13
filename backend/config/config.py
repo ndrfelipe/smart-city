@@ -88,6 +88,10 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(demandas_bp)
 
+    # Comandos administrativos (ex.: flask --app config.config:create_app create-gestor ...)
+    from commands import register_commands
+    register_commands(app)
+
     # Configuração do Swagger UI
     from flask_swagger_ui import get_swaggerui_blueprint
     SWAGGER_URL = '/docs'
