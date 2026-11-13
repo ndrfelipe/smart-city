@@ -6,6 +6,9 @@ from sqlalchemy import inspect, text
 _PENDING_COLUMNS = [
     ('demandas', 'foto', 'VARCHAR(255)'),
     ('demandas', 'texto_busca', 'TEXT'),
+    ('demandas', 'regiao', 'VARCHAR(20)'),
+    ('demandas', 'resolvido_em', 'TIMESTAMP'),
+    ('users', 'push_token', 'VARCHAR(255)'),
 ]
 
 

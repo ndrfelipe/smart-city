@@ -9,6 +9,8 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(20), nullable=False, default='cidadao') # 'cidadao' ou 'gestor'
+    # Expo push token do aparelho logado (ExponentPushToken[...]); limpo no logout.
+    push_token = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     # cria uma lista de demandas associadas a este usuário.
     demandas = db.relationship('Demanda', backref='autor', lazy=True)

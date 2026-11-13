@@ -5,6 +5,7 @@ from schemas.user_schema import UserRegistrationSchema, UserResponseSchema, User
 from marshmallow import ValidationError
 from utils.responses import standard_response
 from utils.get_token import get_token_by_header
+from services.notificacoes_service import token_valido
 
 from config.extensions import db
 
@@ -174,6 +175,41 @@ class AuthController:
 
         try:
             AuthService.logout(token)
+            # O aparelho deslogado deixa de receber as notificações desta conta.
+            user = User.get_user_by_email(request.current_user.get('email'))
+            if user and user.push_token:
+                user.push_token = None
+                db.session.commit()
             return standard_response(message="Logout realizado com sucesso", status_code=200)
         except ValueError as e:
             return standard_response(message=str(e), status_code=400)
+
+    @classmethod
+    def registrar_push_token(cls):
+        user = User.get_user_by_email(request.current_user.get('email'))
+        if not user:
+            return standard_response(message="Usuário não encontrado", status_code=404)
+
+        token = (request.get_json(silent=True) or {}).get('token')
+        if not token_valido(token):
+            return standard_response(
+                data={"errors": {"token": ["Informe um Expo push token válido (ExponentPushToken[...])."]}},
+                message="Erro de validação",
+                status_code=400
+            )
+
+        # Um aparelho pertence a uma conta por vez: se outra conta usava este token
+        # (ex.: troca de usuário no mesmo celular), ela deixa de recebê-lo.
+        User.query.filter(User.push_token == token, User.id != user.id).update({'push_token': None})
+        user.push_token = token
+        db.session.commit()
+        return standard_response(message="Notificações ativadas neste aparelho", status_code=200)
+
+    @classmethod
+    def remover_push_token(cls):
+        user = User.get_user_by_email(request.current_user.get('email'))
+        if not user:
+            return standard_response(message="Usuário não encontrado", status_code=404)
+        user.push_token = None
+        db.session.commit()
+        return standard_response(message="Notificações desativadas neste aparelho", status_code=200)

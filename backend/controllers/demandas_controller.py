@@ -105,6 +105,11 @@ class DemandaController:
             return standard_response(message=str(e), status_code=403)
 
     @staticmethod
+    def metricas():
+        """Painel do gestor (a rota já exige perfil gestor via required_role)."""
+        return standard_response(data=DemandaService.metricas(), status_code=200)
+
+    @staticmethod
     def enviar_foto(demanda_id: int):
         """PUT multipart/form-data com o arquivo no campo 'foto'."""
         email = request.current_user['email']

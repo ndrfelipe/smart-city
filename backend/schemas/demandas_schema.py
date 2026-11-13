@@ -10,6 +10,9 @@ CATEGORIAS_VALIDAS = [
  
 STATUS_VALIDOS    = ['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED']
 PRIORIDADES_VALIDAS = ['baixa', 'media', 'alta', 'urgente']
+REGIOES_VALIDAS     = ['CENTRO', 'NORTE', 'SUL', 'LESTE', 'OESTE']
+# Status em que a demanda sai da fila: contam como "atendidas" no tempo médio de atendimento.
+STATUS_FINALIZADOS  = ('RESOLVED', 'REJECTED')
 
 # Valores legados (em português) e novos convivem no banco; a API sempre responde com os novos.
 CATEGORIA_POR_VALOR_ARMAZENADO = {
@@ -47,6 +50,7 @@ class DemandaCreateSchema(Schema):
     categoria  = fields.String(required=True, validate=validate.OneOf(CATEGORIAS_VALIDAS))
     localizacao = fields.String(required=True, validate=validate.Length(min=3, max=500))
     prioridade = fields.String(required=True, validate=validate.OneOf(PRIORIDADES_VALIDAS))
+    regiao     = fields.String(allow_none=True, validate=validate.OneOf(REGIOES_VALIDAS))
  
     @validates('titulo')
     def validate_titulo_unico(self, value, **kwargs):
@@ -65,6 +69,7 @@ class DemandaUpdateSchema(Schema):
     localizacao = fields.String(validate=validate.Length(min=3, max=500))
     status      = fields.String(validate=validate.OneOf(STATUS_VALIDOS))
     prioridade  = fields.String(validate=validate.OneOf(PRIORIDADES_VALIDAS))
+    regiao      = fields.String(allow_none=True, validate=validate.OneOf(REGIOES_VALIDAS))
  
  
 class DemandaQuerySchema(Schema):
@@ -75,6 +80,7 @@ class DemandaQuerySchema(Schema):
     status     = fields.String(validate=validate.OneOf(STATUS_VALIDOS))
     prioridade = fields.String(validate=validate.OneOf(PRIORIDADES_VALIDAS))
     categoria  = fields.String(validate=validate.OneOf(CATEGORIAS_VALIDAS))
+    regiao     = fields.String(validate=validate.OneOf(REGIOES_VALIDAS))
     q          = fields.String(validate=validate.Length(max=100))
     page       = fields.Integer(load_default=1,  validate=validate.Range(min=1))
     per_page   = fields.Integer(load_default=10, validate=validate.Range(min=1, max=100))
@@ -90,6 +96,8 @@ class DemandaResponseSchema(Schema):
     createdAt = fields.DateTime(attribute='created_at')
     updatedAt = fields.DateTime(attribute='updated_at')
     photoUrl = fields.Method("get_photo_url")
+    region = fields.Str(attribute='regiao', allow_none=True)
+    resolvedAt = fields.DateTime(attribute='resolvido_em', allow_none=True)
 
     def get_photo_url(self, obj):
         # URL absoluta com o host da requisição: funciona tanto em localhost quanto

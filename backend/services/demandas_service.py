@@ -5,12 +5,17 @@ from models.demanda import Demanda, normalizar_busca
 from models.user import User
 from schemas.demandas_schema import (
     CATEGORIA_POR_VALOR_ARMAZENADO,
+    CATEGORIAS_VALIDAS,
+    REGIOES_VALIDAS,
+    STATUS_FINALIZADOS,
     STATUS_POR_VALOR_ARMAZENADO,
+    STATUS_VALIDOS,
     DemandaCreateSchema,
     DemandaQuerySchema,
     DemandaUpdateSchema,
     valores_armazenados,
 )
+from services.notificacoes_service import notificar_mudanca_status
 from utils.uploads import ALLOWED_FORMATS_LABEL, delete_image, detect_image_extension, save_image
  
 # O status "pendente" existe em dois formatos no banco: o legado ('aberto', gravado na
@@ -65,6 +70,7 @@ class DemandaService:
             categoria=dados['categoria'],
             localizacao=dados['localizacao'],
             prioridade=dados['prioridade'],
+            regiao=dados.get('regiao'),
             status='aberto',
             usuario_id=user.id,
         )
@@ -103,6 +109,8 @@ class DemandaService:
             query = query.filter_by(prioridade=params['prioridade'])
         if 'categoria' in params:
             query = query.filter(Demanda.categoria.in_(valores_armazenados(CATEGORIA_POR_VALOR_ARMAZENADO, params['categoria'])))
+        if 'regiao' in params:
+            query = query.filter_by(regiao=params['regiao'])
         termo = normalizar_busca(params.get('q', '').strip())
         if termo:
             # '%' e '_' digitados pelo usuário são literais, não curingas do LIKE.
@@ -165,12 +173,23 @@ class DemandaService:
             if conflito:
                 raise ValueError({'titulo': ['Já existe uma demanda com este título.']})
  
-        for campo in ['titulo', 'descricao', 'categoria', 'localizacao', 'status', 'prioridade']:
+        status_anterior = STATUS_POR_VALOR_ARMAZENADO.get(demanda.status, 'PENDING')
+        status_mudou = 'status' in dados and dados['status'] != status_anterior
+
+        for campo in ['titulo', 'descricao', 'categoria', 'localizacao', 'status', 'prioridade', 'regiao']:
             if campo in dados:
                 setattr(demanda, campo, dados[campo])
- 
-        demanda.updated_at = datetime.datetime.utcnow()
+
+        agora = datetime.datetime.utcnow()
+        if status_mudou:
+            # Conclusão/recusa marca o fim do atendimento; reabrir a demanda zera a marca.
+            demanda.resolvido_em = agora if dados['status'] in STATUS_FINALIZADOS else None
+
+        demanda.updated_at = agora
         db.session.commit()
+
+        if status_mudou:
+            notificar_mudanca_status(demanda, dados['status'], autor_da_mudanca_id=user.id)
         return demanda
  
     @staticmethod
@@ -223,3 +242,58 @@ class DemandaService:
         db.session.commit()
         delete_image(foto_antiga)
         return demanda
+
+    @staticmethod
+    def metricas() -> dict:
+        """
+        Indicadores operacionais do painel do gestor (todas as demandas da cidade):
+        total, distribuição por status/categoria/região e tempo médio de atendimento.
+        """
+        por_status = {status: 0 for status in STATUS_VALIDOS}
+        por_categoria = {categoria: 0 for categoria in CATEGORIAS_VALIDAS}
+        por_regiao = {regiao: 0 for regiao in REGIOES_VALIDAS}
+        por_regiao['NAO_INFORMADA'] = 0
+
+        # Agrupado no banco pelo valor armazenado; legados ('aberto', 'infraestrutura'...)
+        # são somados ao valor equivalente da API.
+        linhas = (
+            db.session.query(Demanda.status, Demanda.categoria, Demanda.regiao, db.func.count(Demanda.id))
+            .group_by(Demanda.status, Demanda.categoria, Demanda.regiao)
+            .all()
+        )
+        total = 0
+        for status, categoria, regiao, quantidade in linhas:
+            total += quantidade
+            por_status[STATUS_POR_VALOR_ARMAZENADO.get(status, 'PENDING')] += quantidade
+            por_categoria[CATEGORIA_POR_VALOR_ARMAZENADO.get(categoria, 'OTHER')] += quantidade
+            por_regiao[regiao if regiao in por_regiao else 'NAO_INFORMADA'] += quantidade
+
+        # Tempo de atendimento = registro -> conclusão/recusa. Demandas finalizadas antes da
+        # coluna resolvido_em existir usam a última atualização como aproximação.
+        finalizados = [
+            armazenado
+            for status in STATUS_FINALIZADOS
+            for armazenado in valores_armazenados(STATUS_POR_VALOR_ARMAZENADO, status)
+        ]
+        atendidas = (
+            db.session.query(Demanda.created_at, db.func.coalesce(Demanda.resolvido_em, Demanda.updated_at))
+            .filter(Demanda.status.in_(finalizados))
+            .all()
+        )
+        duracoes = []
+        for inicio, fim in atendidas:
+            if isinstance(fim, str):  # SQLite devolve o COALESCE como texto
+                fim = datetime.datetime.fromisoformat(fim)
+            if inicio is not None and fim is not None and fim >= inicio:
+                duracoes.append((fim - inicio).total_seconds() / 3600)
+        tempo_medio = round(sum(duracoes) / len(duracoes), 1) if duracoes else None
+
+        return {
+            'total': total,
+            'por_status': por_status,
+            'por_categoria': por_categoria,
+            'por_regiao': por_regiao,
+            'atendidas': len(duracoes),
+            'tempo_medio_atendimento_horas': tempo_medio,
+            'taxa_resolucao': round(por_status['RESOLVED'] / total, 3) if total else 0,
+        }
